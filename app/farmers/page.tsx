@@ -14,7 +14,8 @@ import {
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { FarmersFilter, type FilterValues } from "@/components/farmers/FarmersFilter"
-import { Plus, Eye, Edit, Trash2, AlertTriangle, Download, FileText, MoreHorizontal, Search } from "lucide-react"
+import { ExportButton } from "@/components/exports/ExportButton"
+import { Plus, Eye, Edit, Trash2, AlertTriangle, MoreHorizontal, Search } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Farmer } from "@/lib/types"
 import Link from "next/link"
@@ -162,15 +163,24 @@ export default function FarmersPage() {
     offset: 0
   })
 
-  // Download functions
-  const downloadPDF = () => {
-    // TODO: Implement PDF download functionality
-    console.log('Downloading PDF...')
+  // Export handlers
+  const [exportLoading, setExportLoading] = useState<string | null>(null)
+  const [exportError, setExportError] = useState<string | null>(null)
+
+  const handleExportStart = (format: string) => {
+    setExportLoading(format)
+    setExportError(null)
   }
 
-  const downloadExcel = () => {
-    // TODO: Implement Excel download functionality
-    console.log('Downloading Excel...')
+  const handleExportComplete = () => {
+    setExportLoading(null)
+    setExportError(null)
+  }
+
+  const handleExportError = (error: Error) => {
+    setExportLoading(null)
+    setExportError(error.message)
+    console.error('Export error:', error)
   }
 
   // Build query parameters from filters
@@ -412,25 +422,42 @@ export default function FarmersPage() {
                         isLoading={loading}
                       />
 
-                      {/* PDF Button */}
-                      <Button
-                        onClick={downloadPDF}
-                        className="h-10 px-4 py-2 text-sm font-medium hover:opacity-90 transition-all duration-200 rounded-md border border-gray-300"
-                        style={{ backgroundColor: '#A8C5E2', color: '#1f2937' }}
-                      >
-                        <FileText className="w-4 h-4 mr-2" />
-                        <span>PDF</span>
-                      </Button>
+                      {/* Export Buttons */}
+                      <ExportButton
+                        format="pdf"
+                        data={farmers}
+                        title="Farmers Report"
+                        subtitle="PESIRA - Agricultural Technology Certification Platform"
+                        filename={`Farmers_Report_${new Date().toISOString().split('T')[0]}.pdf`}
+                        onExportStart={() => handleExportStart('pdf')}
+                        onExportComplete={handleExportComplete}
+                        onExportError={handleExportError}
+                        disabled={exportLoading === 'pdf'}
+                      />
 
-                      {/* Excel Button */}
-                      <Button
-                        onClick={downloadExcel}
-                        className="h-10 px-4 py-2 text-white text-sm font-medium hover:opacity-90 transition-all duration-200 rounded-md border border-gray-300"
-                        style={{ backgroundColor: '#16a34a' }}
-                      >
-                        <Download className="w-4 h-4 mr-2" />
-                        <span>Excel</span>
-                      </Button>
+                      <ExportButton
+                        format="excel"
+                        data={farmers}
+                        title="Farmers Data Export"
+                        subtitle="PESIRA - Agricultural Technology Certification Platform"
+                        filename={`Farmers_Data_${new Date().toISOString().split('T')[0]}.xlsx`}
+                        onExportStart={() => handleExportStart('excel')}
+                        onExportComplete={handleExportComplete}
+                        onExportError={handleExportError}
+                        disabled={exportLoading === 'excel'}
+                      />
+
+                      <ExportButton
+                        format="csv"
+                        data={farmers}
+                        title="Farmers Data Export"
+                        subtitle="PESIRA - Agricultural Technology Certification Platform"
+                        filename={`Farmers_Data_${new Date().toISOString().split('T')[0]}.csv`}
+                        onExportStart={() => handleExportStart('csv')}
+                        onExportComplete={handleExportComplete}
+                        onExportError={handleExportError}
+                        disabled={exportLoading === 'csv'}
+                      />
                     </div>
                   </div>
 

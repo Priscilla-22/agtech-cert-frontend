@@ -199,29 +199,98 @@ export function DataTable<TData, TValue>({
         <div className="text-sm text-muted-foreground text-center md:text-left">
           Showing {table.getRowModel().rows.length} of {table.getFilteredRowModel().rows.length} entries
         </div>
-        <div className="flex items-center justify-center space-x-2">
+        <div className="flex items-center justify-center gap-1">
+          {/* Previous Button */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.previousPage()}
             disabled={!table.getCanPreviousPage()}
-            className="px-3 py-2"
+            className="w-10 h-10 p-0 rounded-full border-gray-300 hover:bg-gray-50 disabled:opacity-50"
           >
-            <ChevronLeft className="h-4 w-4 mr-1" />
-            <span className="hidden sm:inline">Previous</span>
+            <ChevronLeft className="h-4 w-4" />
           </Button>
-          <div className="text-sm text-muted-foreground px-2">
-            Page {table.getState().pagination.pageIndex + 1} of {table.getPageCount()}
-          </div>
+
+          {/* First Page */}
+          {table.getState().pagination.pageIndex > 2 && (
+            <>
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.setPageIndex(0)}
+                className="w-10 h-10 p-0 rounded-full border-gray-300 hover:bg-gray-50"
+              >
+                1
+              </Button>
+              {table.getState().pagination.pageIndex > 3 && (
+                <span className="px-2 text-muted-foreground">...</span>
+              )}
+            </>
+          )}
+
+          {/* Page Numbers */}
+          {Array.from({ length: Math.min(5, table.getPageCount()) }, (_, i) => {
+            const currentPage = table.getState().pagination.pageIndex
+            const totalPages = table.getPageCount()
+
+            // Calculate the range of pages to show
+            let startPage = Math.max(0, currentPage - 2)
+            let endPage = Math.min(totalPages - 1, startPage + 4)
+
+            // Adjust start if we're near the end
+            if (endPage - startPage < 4) {
+              startPage = Math.max(0, endPage - 4)
+            }
+
+            const pageIndex = startPage + i
+
+            if (pageIndex > endPage) return null
+
+            const isCurrentPage = pageIndex === currentPage
+
+            return (
+              <Button
+                key={pageIndex}
+                variant={isCurrentPage ? "default" : "outline"}
+                size="sm"
+                onClick={() => table.setPageIndex(pageIndex)}
+                className={`w-10 h-10 p-0 rounded-full ${
+                  isCurrentPage
+                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                    : "border-gray-300 hover:bg-gray-50"
+                }`}
+              >
+                {pageIndex + 1}
+              </Button>
+            )
+          })}
+
+          {/* Last Page */}
+          {table.getState().pagination.pageIndex < table.getPageCount() - 3 && table.getPageCount() > 5 && (
+            <>
+              {table.getState().pagination.pageIndex < table.getPageCount() - 4 && (
+                <span className="px-2 text-muted-foreground">...</span>
+              )}
+              <Button
+                variant="outline"
+                size="sm"
+                onClick={() => table.setPageIndex(table.getPageCount() - 1)}
+                className="w-10 h-10 p-0 rounded-full border-gray-300 hover:bg-gray-50"
+              >
+                {table.getPageCount()}
+              </Button>
+            </>
+          )}
+
+          {/* Next Button */}
           <Button
             variant="outline"
             size="sm"
             onClick={() => table.nextPage()}
             disabled={!table.getCanNextPage()}
-            className="px-3 py-2"
+            className="w-10 h-10 p-0 rounded-full border-gray-300 hover:bg-gray-50 disabled:opacity-50"
           >
-            <span className="hidden sm:inline">Next</span>
-            <ChevronRight className="h-4 w-4 ml-1" />
+            <ChevronRight className="h-4 w-4" />
           </Button>
         </div>
       </div>

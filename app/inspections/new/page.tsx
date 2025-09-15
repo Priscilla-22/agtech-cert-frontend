@@ -2,7 +2,9 @@
 
 import type React from "react"
 
-import { Header } from "@/components/layout/header"
+import { Sidebar } from "@/components/layout/sidebar"
+import { Navbar } from "@/components/layout/navbar"
+import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
@@ -12,8 +14,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Calendar } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { useAuth } from "@/contexts/AuthContext"
+import { useRouter } from "next/navigation"
 
 export default function NewInspectionPage() {
+  const { user, loading: authLoading } = useAuth()
+  const router = useRouter()
+
   const [formData, setFormData] = useState({
     farmId: "",
     inspectorName: "",
@@ -55,6 +62,28 @@ export default function NewInspectionPage() {
   const selectedFarm = farms.find((f) => f.id === formData.farmId)
   const selectedFarmer = selectedFarm ? farmers.find((f) => f.id === selectedFarm.farmerId) : null
 
+  // Auth check
+  useEffect(() => {
+    if (!authLoading && !user) {
+      router.push("/login")
+    }
+  }, [user, authLoading, router])
+
+  if (authLoading) {
+    return (
+      <div className="min-h-screen bg-background flex items-center justify-center">
+        <div className="text-center space-y-4">
+          <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (!user) {
+    return null
+  }
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
@@ -80,30 +109,51 @@ export default function NewInspectionPage() {
   }
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container py-6">
-        <div className="flex flex-col gap-6 max-w-2xl">
-          <div className="flex items-center gap-4">
-            <Button variant="ghost" size="sm" asChild>
-              <Link href="/inspections">
-                <ArrowLeft className="mr-2 h-4 w-4" />
-                Back to Inspections
-              </Link>
-            </Button>
-            <div>
-              <h1 className="text-3xl font-bold tracking-tight">Schedule New Inspection</h1>
-              <p className="text-muted-foreground">Create a new farm inspection appointment</p>
-            </div>
-          </div>
+    <div className="bg-background">
+      <div className="flex min-h-screen">
+        {/* Mobile sidebar overlay */}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden sidebar-overlay opacity-0 invisible transition-all duration-300"
+          onClick={() => {
+            const sidebar = document.querySelector('[data-sidebar]')
+            if (sidebar) {
+              sidebar.classList.add('-translate-x-full')
+              sidebar.classList.remove('translate-x-0')
+              document.querySelector('.sidebar-overlay')?.classList.add('opacity-0', 'invisible')
+              document.querySelector('.sidebar-overlay')?.classList.remove('opacity-100', 'visible')
+            }
+          }}
+        />
 
-          <Card>
-            <CardHeader>
-              <CardTitle>Inspection Details</CardTitle>
-              <CardDescription>Select the farm and inspector for this inspection</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <form onSubmit={handleSubmit} className="space-y-6">
+        <Sidebar />
+
+        <div className="flex-1 flex flex-col w-full md:w-auto">
+          <Navbar />
+
+          <main className="flex-1 p-3 sm:p-4 md:p-6">
+            <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 pb-20 md:pb-96">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                <div>
+                  <h1 className="text-2xl sm:text-3xl font-space-grotesk font-bold text-foreground">Schedule New Inspection</h1>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    Create a new farm inspection appointment
+                  </p>
+                </div>
+                <Button variant="ghost" size="sm" asChild className="w-full sm:w-auto">
+                  <Link href="/inspections">
+                    <ArrowLeft className="mr-2 h-4 w-4" />
+                    Back to Inspections
+                  </Link>
+                </Button>
+              </div>
+
+              <Card className="border-0 shadow-sm">
+                <CardHeader>
+                  <CardTitle className="font-space-grotesk">Inspection Details</CardTitle>
+                  <CardDescription>Select the farm and inspector for this inspection</CardDescription>
+                </CardHeader>
+                <CardContent>
+                  <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="space-y-2">
                   <Label htmlFor="farm">Select Farm</Label>
                   <Select
@@ -115,9 +165,9 @@ export default function NewInspectionPage() {
                     </SelectTrigger>
                     <SelectContent>
                       {loading ? (
-                        <SelectItem value="" disabled>Loading farms...</SelectItem>
+                        <SelectItem value="loading" disabled>Loading farms...</SelectItem>
                       ) : farms.length === 0 ? (
-                        <SelectItem value="" disabled>No farms available</SelectItem>
+                        <SelectItem value="no-farms" disabled>No farms available</SelectItem>
                       ) : (
                         farms.map((farm) => {
                           const farmer = farmers.find((f) => f.id === farm.farmerId)
@@ -206,12 +256,15 @@ export default function NewInspectionPage() {
                   <Button type="button" variant="outline" asChild>
                     <Link href="/inspections">Cancel</Link>
                   </Button>
-                </div>
-              </form>
-            </CardContent>
-          </Card>
+                  </div>
+                </form>
+              </CardContent>
+            </Card>
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
+      <Footer />
     </div>
   )
 }

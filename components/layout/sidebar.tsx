@@ -82,15 +82,7 @@ export function Sidebar() {
         </div>
       </div>
 
-      <div className="flex items-center justify-between p-4 border-b border-sidebar-border">
-        {isExpanded && (
-          <div className="flex items-center gap-2">
-            <div className="w-8 h-8 bg-primary rounded-lg flex items-center justify-center">
-              <Leaf className="w-5 h-5 text-primary-foreground" />
-            </div>
-            <span className="font-space-grotesk font-bold text-lg text-sidebar-foreground">CertTracker</span>
-          </div>
-        )}
+      <div className="flex items-center justify-end p-4 border-b border-sidebar-border">
         <Button
           variant="ghost"
           size="sm"

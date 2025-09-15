@@ -13,14 +13,82 @@ import {
   DropdownMenuItem,
   DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Plus, Eye, Edit, Trash2, AlertTriangle, Download, FileText, MoreHorizontal } from "lucide-react"
+import { FarmersFilter, type FilterValues } from "@/components/farmers/FarmersFilter"
+import { Plus, Eye, Edit, Trash2, AlertTriangle, Download, FileText, MoreHorizontal, Search } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Farmer } from "@/lib/types"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+
+function ActionsCell({ farmer }: { farmer: Farmer }) {
+  const router = useRouter()
+  const [showMenu, setShowMenu] = useState(false)
+
+  const handleDelete = () => {
+    if (confirm("Are you sure you want to delete this farmer?")) {
+      console.log("Delete farmer:", farmer.id)
+      // TODO: Hook up API deletion and refresh table state
+    }
+    setShowMenu(false)
+  }
+
+  return (
+    <div className="relative flex items-center justify-center">
+      <Button
+        variant="ghost"
+        size="sm"
+        className="h-8 w-8 p-0 hover:bg-muted"
+        onClick={() => setShowMenu(!showMenu)}
+        aria-label="Open actions menu"
+      >
+        <MoreHorizontal className="h-4 w-4" />
+      </Button>
+
+      {showMenu && (
+        <>
+          {/* Overlay to close menu when clicking outside */}
+          <div
+            className="fixed inset-0 z-40"
+            onClick={() => setShowMenu(false)}
+          />
+
+          {/* Dropdown Menu */}
+          <div className="absolute right-0 top-8 z-50 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1">
+            <button
+              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center"
+              onClick={() => {
+                router.push(`/farmers/${farmer.id}`)
+                setShowMenu(false)
+              }}
+            >
+              <Eye className="mr-2 h-4 w-4" />
+              View Details
+            </button>
+            <button
+              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center"
+              onClick={() => {
+                router.push(`/farmers/${farmer.id}/edit`)
+                setShowMenu(false)
+              }}
+            >
+              <Edit className="mr-2 h-4 w-4" />
+              Edit Farmer
+            </button>
+            <button
+              className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center"
+              onClick={handleDelete}
+            >
+              <Trash2 className="mr-2 h-4 w-4" />
+              Delete Farmer
+            </button>
+          </div>
+        </>
+      )}
+    </div>
+  )
+}
 
 const columns: ColumnDef<Farmer>[] = [
   {
@@ -74,58 +142,7 @@ const columns: ColumnDef<Farmer>[] = [
     header: "Actions",
     cell: ({ row }) => {
       const farmer = row.original
-      return (
-        <div className="flex items-center justify-center">
-          <Popover>
-            <PopoverTrigger asChild>
-              <Button
-                variant="ghost"
-                size="sm"
-                className="h-8 w-8 p-0 hover:bg-muted"
-              >
-                <MoreHorizontal className="h-4 w-4" />
-                <span className="sr-only">Open actions menu</span>
-              </Button>
-            </PopoverTrigger>
-            <PopoverContent className="w-48 p-1" align="end" side="bottom" sideOffset={5}>
-              <div className="flex flex-col space-y-1">
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start h-8 px-2"
-                  onClick={() => window.location.href = `/farmers/${farmer.id}`}
-                >
-                  <Eye className="mr-2 h-4 w-4" />
-                  View Details
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start h-8 px-2"
-                  onClick={() => window.location.href = `/farmers/${farmer.id}/edit`}
-                >
-                  <Edit className="mr-2 h-4 w-4" />
-                  Edit Farmer
-                </Button>
-                <Button
-                  variant="ghost"
-                  size="sm"
-                  className="justify-start h-8 px-2 text-red-600 hover:text-red-600 hover:bg-red-50"
-                  onClick={() => {
-                    if (confirm('Are you sure you want to delete this farmer?')) {
-                      console.log('Delete farmer:', farmer.id)
-                      // TODO: Implement delete functionality
-                    }
-                  }}
-                >
-                  <Trash2 className="mr-2 h-4 w-4" />
-                  Delete Farmer
-                </Button>
-              </div>
-            </PopoverContent>
-          </Popover>
-        </div>
-      )
+      return <ActionsCell farmer={farmer} />
     },
   },
 ]
@@ -138,6 +155,12 @@ export default function FarmersPage() {
   const [farmers, setFarmers] = useState<Farmer[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [filters, setFilters] = useState<FilterValues>({})
+  const [totalFarmers, setTotalFarmers] = useState(0)
+  const [pagination, setPagination] = useState({
+    limit: 50,
+    offset: 0
+  })
 
   // Download functions
   const downloadPDF = () => {
@@ -150,30 +173,91 @@ export default function FarmersPage() {
     console.log('Downloading Excel...')
   }
 
-  // Fetch farmers data
-  useEffect(() => {
-    const fetchFarmers = async () => {
-      try {
-        setLoading(true)
-        setError(null)
+  // Build query parameters from filters
+  const buildQueryParams = (filtersToApply: FilterValues, paginationToApply = pagination) => {
+    const params = new URLSearchParams()
 
-        const response = await fetch('http://localhost:3002/api/farmers')
-        if (!response.ok) {
-          throw new Error('Failed to fetch farmers')
+    // Add filters
+    Object.entries(filtersToApply).forEach(([key, value]) => {
+      if (value !== undefined && value !== '' && value !== null) {
+        if (key === 'registrationDateFrom' || key === 'registrationDateTo') {
+          // Format dates for backend
+          params.append(key, (value as Date).toISOString().split('T')[0])
+        } else {
+          params.append(key, value.toString())
         }
-
-        const farmersData = await response.json()
-        setFarmers(farmersData)
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch farmers')
-        console.error('Farmers fetch error:', err)
-      } finally {
-        setLoading(false)
       }
-    }
+    })
 
+    // Add pagination
+    params.append('limit', paginationToApply.limit.toString())
+    params.append('offset', paginationToApply.offset.toString())
+
+    return params.toString()
+  }
+
+  // Fetch farmers data
+  const fetchFarmers = async (filtersToApply: FilterValues = filters, paginationToApply = pagination) => {
+    try {
+      setLoading(true)
+      setError(null)
+
+      const queryParams = buildQueryParams(filtersToApply, paginationToApply)
+      const response = await fetch(`http://localhost:3002/api/farmers?${queryParams}`)
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch farmers')
+      }
+
+      const result = await response.json()
+
+      // Handle both old format (array) and new format (object with data array)
+      if (Array.isArray(result)) {
+        setFarmers(result)
+        setTotalFarmers(result.length)
+      } else {
+        setFarmers(result.data || [])
+        setTotalFarmers(result.total || 0)
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to fetch farmers')
+      console.error('Farmers fetch error:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  // Filter handlers
+  const handleFiltersChange = (newFilters: FilterValues) => {
+    setFilters(newFilters)
+  }
+
+  const handleApplyFilters = () => {
+    // Reset pagination when applying new filters
+    const newPagination = { ...pagination, offset: 0 }
+    setPagination(newPagination)
+    fetchFarmers(filters, newPagination)
+  }
+
+  const handleClearFilters = () => {
+    const clearedFilters: FilterValues = {}
+    setFilters(clearedFilters)
+    const newPagination = { ...pagination, offset: 0 }
+    setPagination(newPagination)
+    fetchFarmers(clearedFilters, newPagination)
+  }
+
+  // Initial fetch
+  useEffect(() => {
     fetchFarmers()
   }, [])
+
+  // Fetch when pagination changes (but not filters - those are handled manually)
+  useEffect(() => {
+    if (pagination.offset > 0) {
+      fetchFarmers()
+    }
+  }, [pagination.offset, pagination.limit])
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -245,19 +329,36 @@ export default function FarmersPage() {
   return (
     <div className="bg-background">
       <div className="flex min-h-screen">
+        {/* Mobile sidebar overlay */}
+        <div
+          className="fixed inset-0 bg-black bg-opacity-50 z-40 md:hidden sidebar-overlay opacity-0 invisible transition-all duration-300"
+          onClick={() => {
+            const sidebar = document.querySelector('[data-sidebar]')
+            if (sidebar) {
+              sidebar.classList.add('-translate-x-full')
+              sidebar.classList.remove('translate-x-0')
+              document.querySelector('.sidebar-overlay')?.classList.add('opacity-0', 'invisible')
+              document.querySelector('.sidebar-overlay')?.classList.remove('opacity-100', 'visible')
+            }
+          }}
+        />
+
         <Sidebar />
 
-        <div className="flex-1 flex flex-col">
+        <div className="flex-1 flex flex-col w-full md:w-auto">
           <Navbar />
 
-          <main className="flex-1 p-6">
-            <div className="max-w-7xl mx-auto space-y-6 pb-96">
-              <div className="flex items-center justify-between">
+          <main className="flex-1 p-3 sm:p-4 md:p-6">
+            <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 pb-20 md:pb-96">
+              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h1 className="text-3xl font-space-grotesk font-bold text-foreground">Farmers</h1>
-                  <p className="text-muted-foreground">Manage registered farmers and their certification status</p>
+                  <h1 className="text-2xl sm:text-3xl font-space-grotesk font-bold text-foreground">Farmers</h1>
+                  <p className="text-sm sm:text-base text-muted-foreground">
+                    Manage registered farmers and their certification status
+                    {totalFarmers > 0 && ` (${totalFarmers} total)`}
+                  </p>
                 </div>
-                <Button asChild>
+                <Button asChild className="w-full sm:w-auto">
                   <Link href="/farmers/new">
                     <Plus className="mr-2 h-4 w-4" />
                     Add Farmer
@@ -268,16 +369,79 @@ export default function FarmersPage() {
               <Card className="border-0 shadow-sm">
                 <CardHeader>
                   <CardTitle className="font-space-grotesk">Registered Farmers</CardTitle>
-                  <CardDescription>A list of all farmers in your certification system</CardDescription>
+                  <CardDescription>
+                    A list of all farmers in your certification system
+                    {farmers.length !== totalFarmers && totalFarmers > 0 && (
+                      ` - Showing ${farmers.length} of ${totalFarmers}`
+                    )}
+                  </CardDescription>
                 </CardHeader>
                 <CardContent>
+                  {/* Search and Action Buttons Row */}
+                  <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between mb-6 mt-8">
+                    {/* Search Bar */}
+                    <div className="relative flex-1 max-w-full md:max-w-sm">
+                      <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                      <input
+                        placeholder="Search farmers by name, email, or phone..."
+                        value={filters.search || ''}
+                        onChange={(e) => {
+                          const newFilters = { ...filters, search: e.target.value || undefined }
+                          handleFiltersChange(newFilters)
+                          if (!e.target.value) {
+                            handleApplyFilters()
+                          }
+                        }}
+                        onKeyDown={(e) => {
+                          if (e.key === 'Enter') {
+                            handleApplyFilters()
+                          }
+                        }}
+                        className="flex h-10 w-full rounded-md border border-input bg-background pl-9 pr-3 py-2 text-sm ring-offset-background file:border-0 file:bg-transparent file:text-sm file:font-medium placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                      />
+                    </div>
+
+                    {/* Action Buttons */}
+                    <div className="flex items-center gap-3">
+                      {/* Filter Button */}
+                      <FarmersFilter
+                        filters={filters}
+                        onFiltersChange={handleFiltersChange}
+                        onApplyFilters={handleApplyFilters}
+                        onClearFilters={handleClearFilters}
+                        isLoading={loading}
+                      />
+
+                      {/* PDF Button */}
+                      <Button
+                        onClick={downloadPDF}
+                        className="h-10 px-4 py-2 text-sm font-medium hover:opacity-90 transition-all duration-200 rounded-md border border-gray-300"
+                        style={{ backgroundColor: '#A8C5E2', color: '#1f2937' }}
+                      >
+                        <FileText className="w-4 h-4 mr-2" />
+                        <span>PDF</span>
+                      </Button>
+
+                      {/* Excel Button */}
+                      <Button
+                        onClick={downloadExcel}
+                        className="h-10 px-4 py-2 text-white text-sm font-medium hover:opacity-90 transition-all duration-200 rounded-md border border-gray-300"
+                        style={{ backgroundColor: '#16a34a' }}
+                      >
+                        <Download className="w-4 h-4 mr-2" />
+                        <span>Excel</span>
+                      </Button>
+                    </div>
+                  </div>
+
                   <DataTable
                     columns={columns}
                     data={farmers}
-                    searchKey="name"
-                    searchPlaceholder="Search farmers..."
-                    onDownloadPDF={downloadPDF}
-                    onDownloadExcel={downloadExcel}
+                    searchKey=""
+                    searchPlaceholder=""
+                    onDownloadPDF={undefined}
+                    onDownloadExcel={undefined}
+                    showSearch={false}
                   />
                 </CardContent>
               </Card>

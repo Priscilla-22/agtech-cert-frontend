@@ -21,6 +21,7 @@ import { useState } from "react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import { api } from "@/lib/api-client"
 
 const STEPS = [
   {
@@ -184,55 +185,29 @@ function NewFarmerContent() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('http://localhost:3002/api/farmers', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(formData),
+      const responseData = await api.farmers.create(formData)
+
+      // Success - API client only returns data on success
+      // Success toast
+      toast({
+        title: "✅ Farmer Registered Successfully!",
+        description: `${formData.name} has been added to the system and is ready for certification tracking.`
       })
 
-      const responseData = await response.json()
-
-      if (response.ok) {
-        // Success toast
-        toast({
-          title: "✅ Farmer Registered Successfully!",
-          description: `${formData.name} has been added to the system and is ready for certification tracking.`
-        })
-
-        // Navigate to farmers page after short delay
-        setTimeout(() => {
-          router.push('/farmers')
-        }, 1500)
-
-      } else {
-        // Handle validation errors from backend
-        if (responseData.errors && Array.isArray(responseData.errors)) {
-          // Show all validation errors in the toast
-          const errorMessage = responseData.errors.slice(0, 3).join(', ')
-          const remainingErrors = responseData.errors.length > 3 ? ` and ${responseData.errors.length - 3} more issues` : ''
-
-          toast({
-            variant: "destructive",
-            title: "Please Fix These Issues:",
-            description: errorMessage + remainingErrors
-          })
-        } else {
-          // Generic error
-          toast({
-            variant: "destructive",
-            title: "Registration Failed",
-            description: responseData.message || "There was an error creating the farmer. Please try again."
-          })
-        }
-      }
+      // Navigate to farmers page after short delay
+      setTimeout(() => {
+        router.push('/farmers')
+      }, 1500)
     } catch (error) {
       console.error('Error creating farmer:', error)
+      
+      // Handle API client errors with user-friendly messages
+      const errorMessage = error instanceof Error ? error.message : "Unable to connect to the server. Please check your connection and try again."
+      
       toast({
         variant: "destructive",
-        title: "Network Error",
-        description: "Unable to connect to the server. Please check your connection and try again."
+        title: "Registration Failed",
+        description: errorMessage
       })
     } finally {
       setIsSubmitting(false)

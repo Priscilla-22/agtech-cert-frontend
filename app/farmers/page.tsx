@@ -22,15 +22,28 @@ import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
+import { api, type ApiError } from "@/lib/api-client"
 
-function ActionsCell({ farmer }: { farmer: Farmer }) {
+function ActionsCell({ farmer, onDelete }: { farmer: Farmer; onDelete: (farmerId: string) => void }) {
   const router = useRouter()
   const [showMenu, setShowMenu] = useState(false)
+  const [isDeleting, setIsDeleting] = useState(false)
 
-  const handleDelete = () => {
-    if (confirm("Are you sure you want to delete this farmer?")) {
-      console.log("Delete farmer:", farmer.id)
-      // TODO: Hook up API deletion and refresh table state
+  const handleDelete = async () => {
+    if (confirm(`Are you sure you want to delete ${farmer.name}? This action cannot be undone and will also delete all associated farms and data.`)) {
+      try {
+        setIsDeleting(true)
+        await api.farmers.delete(farmer.id)
+        
+        // Call the parent's delete handler to update the list
+        onDelete(farmer.id)
+      } catch (error) {
+        console.error('Delete error:', error)
+        const errorMessage = error instanceof Error ? error.message : 'Failed to delete farmer. Please try again.'
+        alert(errorMessage)
+      } finally {
+        setIsDeleting(false)
+      }
     }
     setShowMenu(false)
   }
@@ -78,11 +91,12 @@ function ActionsCell({ farmer }: { farmer: Farmer }) {
               Edit Farmer
             </button>
             <button
-              className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center"
+              className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center disabled:opacity-50"
               onClick={handleDelete}
+              disabled={isDeleting}
             >
               <Trash2 className="mr-2 h-4 w-4" />
-              Delete Farmer
+              {isDeleting ? 'Deleting...' : 'Delete Farmer'}
             </button>
           </div>
         </>
@@ -91,7 +105,7 @@ function ActionsCell({ farmer }: { farmer: Farmer }) {
   )
 }
 
-const columns: ColumnDef<Farmer>[] = [
+const createColumns = (onDelete: (farmerId: string) => void): ColumnDef<Farmer>[] => [
   {
     id: "row-number",
     header: "#",
@@ -143,7 +157,7 @@ const columns: ColumnDef<Farmer>[] = [
     header: "Actions",
     cell: ({ row }) => {
       const farmer = row.original
-      return <ActionsCell farmer={farmer} />
+      return <ActionsCell farmer={farmer} onDelete={onDelete} />
     },
   },
 ]
@@ -183,43 +197,25 @@ export default function FarmersPage() {
     console.error('Export error:', error)
   }
 
-  // Build query parameters from filters
-  const buildQueryParams = (filtersToApply: FilterValues, paginationToApply = pagination) => {
-    const params = new URLSearchParams()
-
-    // Add filters
-    Object.entries(filtersToApply).forEach(([key, value]) => {
-      if (value !== undefined && value !== '' && value !== null) {
-        if (key === 'registrationDateFrom' || key === 'registrationDateTo') {
-          // Format dates for backend
-          params.append(key, (value as Date).toISOString().split('T')[0])
-        } else {
-          params.append(key, value.toString())
-        }
-      }
-    })
-
-    // Add pagination
-    params.append('limit', paginationToApply.limit.toString())
-    params.append('offset', paginationToApply.offset.toString())
-
-    return params.toString()
-  }
-
   // Fetch farmers data
   const fetchFarmers = async (filtersToApply: FilterValues = filters, paginationToApply = pagination) => {
     try {
       setLoading(true)
       setError(null)
 
-      const queryParams = buildQueryParams(filtersToApply, paginationToApply)
-      const response = await fetch(`http://localhost:3002/api/farmers?${queryParams}`)
-
-      if (!response.ok) {
-        throw new Error('Failed to fetch farmers')
+      // Prepare parameters for API call
+      const params = {
+        ...filtersToApply,
+        limit: paginationToApply.limit,
+        offset: paginationToApply.offset,
+        // Format dates for backend
+        registrationDateFrom: filtersToApply.registrationDateFrom ? 
+          (filtersToApply.registrationDateFrom as Date).toISOString().split('T')[0] : undefined,
+        registrationDateTo: filtersToApply.registrationDateTo ? 
+          (filtersToApply.registrationDateTo as Date).toISOString().split('T')[0] : undefined,
       }
 
-      const result = await response.json()
+      const result = await api.farmers.getAll(params)
 
       // Handle both old format (array) and new format (object with data array)
       if (Array.isArray(result)) {
@@ -230,7 +226,8 @@ export default function FarmersPage() {
         setTotalFarmers(result.total || 0)
       }
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to fetch farmers')
+      const errorMessage = err instanceof Error ? err.message : 'Failed to fetch farmers'
+      setError(errorMessage)
       console.error('Farmers fetch error:', err)
     } finally {
       setLoading(false)
@@ -255,6 +252,13 @@ export default function FarmersPage() {
     const newPagination = { ...pagination, offset: 0 }
     setPagination(newPagination)
     fetchFarmers(clearedFilters, newPagination)
+  }
+
+  // Delete handler
+  const handleDeleteFarmer = (farmerId: string) => {
+    // Remove farmer from current list
+    setFarmers(prevFarmers => prevFarmers.filter(farmer => farmer.id !== farmerId))
+    setTotalFarmers(prev => prev - 1)
   }
 
   // Initial fetch
@@ -462,7 +466,7 @@ export default function FarmersPage() {
                   </div>
 
                   <DataTable
-                    columns={columns}
+                    columns={createColumns(handleDeleteFarmer)}
                     data={farmers}
                     searchKey=""
                     searchPlaceholder=""

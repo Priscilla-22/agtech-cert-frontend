@@ -29,14 +29,14 @@ export function Footer() {
               Empowering sustainable agriculture through comprehensive organic certification tracking and management solutions for farmers and agronomists.
             </p>
             <div className="flex gap-4">
-              <a href="#" className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
-                <Facebook className="w-4 h-4" />
+              <a href="#" className="p-2 bg-white/10 rounded-lg hover:bg-orange-500/20 transition-colors group">
+                <Facebook className="w-4 h-4 group-hover:text-orange-400" />
               </a>
-              <a href="#" className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
-                <Twitter className="w-4 h-4" />
+              <a href="#" className="p-2 bg-white/10 rounded-lg hover:bg-orange-500/20 transition-colors group">
+                <Twitter className="w-4 h-4 group-hover:text-orange-400" />
               </a>
-              <a href="#" className="p-2 bg-white/10 rounded-lg hover:bg-white/20 transition-colors">
-                <Linkedin className="w-4 h-4" />
+              <a href="#" className="p-2 bg-white/10 rounded-lg hover:bg-orange-500/20 transition-colors group">
+                <Linkedin className="w-4 h-4 group-hover:text-orange-400" />
               </a>
             </div>
           </div>
@@ -78,23 +78,23 @@ export function Footer() {
             <h4 className="text-lg font-semibold">Our Services</h4>
             <ul className="space-y-3">
               <li className="flex items-center gap-2 text-white/90 text-sm">
-                <Leaf className="w-4 h-4 text-green-400" />
+                <Leaf className="w-4 h-4 text-orange-400" />
                 Organic Certification
               </li>
               <li className="flex items-center gap-2 text-white/90 text-sm">
-                <Leaf className="w-4 h-4 text-green-400" />
+                <Leaf className="w-4 h-4 text-orange-400" />
                 Farm Inspections
               </li>
               <li className="flex items-center gap-2 text-white/90 text-sm">
-                <Leaf className="w-4 h-4 text-green-400" />
+                <Leaf className="w-4 h-4 text-orange-400" />
                 Compliance Tracking
               </li>
               <li className="flex items-center gap-2 text-white/90 text-sm">
-                <Leaf className="w-4 h-4 text-green-400" />
+                <Leaf className="w-4 h-4 text-orange-400" />
                 Digital Certificates
               </li>
               <li className="flex items-center gap-2 text-white/90 text-sm">
-                <Leaf className="w-4 h-4 text-green-400" />
+                <Leaf className="w-4 h-4 text-orange-400" />
                 Training & Support
               </li>
             </ul>
@@ -105,7 +105,7 @@ export function Footer() {
             <h4 className="text-lg font-semibold">Contact Us</h4>
             <div className="space-y-4">
               <div className="flex items-start gap-3">
-                <MapPin className="w-5 h-5 text-green-400 mt-0.5 flex-shrink-0" />
+                <MapPin className="w-5 h-5 text-orange-400 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="text-white/90 text-sm">
                     Nairobi, Kenya
@@ -116,13 +116,13 @@ export function Footer() {
                 </div>
               </div>
               <div className="flex items-center gap-3">
-                <Mail className="w-5 h-5 text-green-400" />
+                <Mail className="w-5 h-5 text-orange-400" />
                 <a href="mailto:info@pesira.com" className="text-white/90 hover:text-white transition-colors text-sm">
                   info@pesira.com
                 </a>
               </div>
               <div className="flex items-center gap-3">
-                <Phone className="w-5 h-5 text-green-400" />
+                <Phone className="w-5 h-5 text-orange-400" />
                 <a href="tel:+254700000000" className="text-white/90 hover:text-white transition-colors text-sm">
                   +254 700 000 000
                 </a>

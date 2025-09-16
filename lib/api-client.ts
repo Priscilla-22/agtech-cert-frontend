@@ -1,114 +1,334 @@
-const API_BASE_URL = "/api"
+import { API_CONFIG, API_ENDPOINTS, HTTP_METHODS } from './config'
 
+// Types
+export interface ApiResponse<T = any> {
+  data?: T
+  error?: string
+  message?: string
+  total?: number
+  limit?: number
+  offset?: number
+}
+
+export interface ApiError {
+  message: string
+  status: number
+  statusText: string
+}
+
+export interface QueryParams {
+  [key: string]: string | number | boolean | undefined
+}
+
+// API Client Class
 class ApiClient {
-  private async request<T>(endpoint: string, options?: RequestInit): Promise<T> {
-    const url = `${API_BASE_URL}${endpoint}`
+  private baseUrl: string
+  private timeout: number
 
-    const response = await fetch(url, {
-      headers: {
-        "Content-Type": "application/json",
-        ...options?.headers,
-      },
+  constructor() {
+    this.baseUrl = API_CONFIG.BASE_URL
+    this.timeout = API_CONFIG.TIMEOUT
+  }
+
+  // Helper method to build URLs with query parameters
+  private buildUrl(endpoint: string, params?: QueryParams): string {
+    let url: URL
+    
+    // Handle both absolute and relative base URLs
+    if (this.baseUrl.startsWith('http')) {
+      // Absolute URL (server-side)
+      url = new URL(endpoint, this.baseUrl)
+    } else {
+      // Relative URL (client-side) - need to construct with current origin
+      const fullUrl = this.baseUrl + endpoint
+      url = new URL(fullUrl, window.location.origin)
+    }
+    
+    if (params) {
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== undefined && value !== null && value !== '') {
+          url.searchParams.append(key, String(value))
+        }
+      })
+    }
+    
+    return url.toString()
+  }
+
+  // Core request method
+  private async request<T = any>(
+    endpoint: string, 
+    options: RequestInit = {},
+    params?: QueryParams
+  ): Promise<T> {
+    const url = this.buildUrl(endpoint, params)
+    
+    const config: RequestInit = {
       ...options,
-    })
-
-    if (!response.ok) {
-      const error = await response.json().catch(() => ({ error: "Unknown error" }))
-      throw new Error(error.error || `HTTP ${response.status}`)
+      headers: {
+        'Content-Type': 'application/json',
+        ...options.headers,
+      },
     }
 
-    return response.json()
-  }
+    // Add timeout
+    const controller = new AbortController()
+    const timeoutId = setTimeout(() => controller.abort(), this.timeout)
+    config.signal = controller.signal
 
-  async getFarmers() {
-    return this.request("/farmers")
-  }
+    try {
+      const response = await fetch(url, config)
+      clearTimeout(timeoutId)
 
-  async getFarmer(id: string) {
-    return this.request(`/farmers/${id}`)
-  }
+      if (!response.ok) {
+        let errorMessage = `HTTP ${response.status}: ${response.statusText}`
+        
+        try {
+          const errorData = await response.json()
+          errorMessage = errorData.error || errorData.message || errorMessage
+        } catch {
+          // If JSON parsing fails, use the default error message
+        }
 
-  async createFarmer(data: any) {
-    return this.request("/farmers", {
-      method: "POST",
-      body: JSON.stringify(data),
-    })
-  }
+        const error: ApiError = {
+          message: errorMessage,
+          status: response.status,
+          statusText: response.statusText,
+        }
+        
+        throw error
+      }
 
-  async updateFarmer(id: string, data: any) {
-    return this.request(`/farmers/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    })
-  }
+      // Handle empty responses (like DELETE operations)
+      const contentType = response.headers.get('content-type')
+      if (!contentType?.includes('application/json')) {
+        return {} as T
+      }
 
-  async deleteFarmer(id: string) {
-    return this.request(`/farmers/${id}`, {
-      method: "DELETE",
-    })
-  }
-
-  async getInspections() {
-    return this.request("/inspections")
-  }
-
-  async getInspection(id: string) {
-    return this.request(`/inspections/${id}`)
-  }
-
-  async createInspection(data: any) {
-    return this.request("/inspections", {
-      method: "POST",
-      body: JSON.stringify(data),
-    })
-  }
-
-  async updateInspection(id: string, data: any) {
-    return this.request(`/inspections/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    })
-  }
-
-  async getCertificates() {
-    return this.request("/certificates")
-  }
-
-  async getCertificate(id: string) {
-    return this.request(`/certificates/${id}`)
-  }
-
-  async createCertificate(data: any) {
-    return this.request("/certificates", {
-      method: "POST",
-      body: JSON.stringify(data),
-    })
-  }
-
-  async updateCertificate(id: string, data: any) {
-    return this.request(`/certificates/${id}`, {
-      method: "PUT",
-      body: JSON.stringify(data),
-    })
-  }
-
-  async revokeCertificate(id: string) {
-    return this.request(`/certificates/${id}`, {
-      method: "DELETE",
-    })
-  }
-
-  async getDashboardStats() {
-    return this.request("/dashboard/stats")
-  }
-
-  async downloadCertificatePDF(id: string) {
-    const response = await fetch(`${API_BASE_URL}/certificates/${id}/pdf`)
-    if (!response.ok) {
-      throw new Error("Failed to download certificate")
+      return await response.json()
+    } catch (error) {
+      clearTimeout(timeoutId)
+      
+      if (error instanceof Error && error.name === 'AbortError') {
+        throw new Error('Request timeout')
+      }
+      
+      throw error
     }
-    return response.blob()
+  }
+
+  // Health check
+  async healthCheck(): Promise<{ status: string; timestamp: string }> {
+    return this.request(API_ENDPOINTS.HEALTH)
+  }
+
+  // Farmer APIs
+  farmers = {
+    getAll: (params?: {
+      search?: string
+      status?: string
+      certificationStatus?: string
+      county?: string
+      subCounty?: string
+      farmingType?: string
+      organicExperience?: string
+      educationLevel?: string
+      minLandSize?: number
+      maxLandSize?: number
+      registrationDateFrom?: string
+      registrationDateTo?: string
+      limit?: number
+      offset?: number
+    }) => {
+      return this.request<ApiResponse<any[]>>(API_ENDPOINTS.FARMERS.LIST, { method: HTTP_METHODS.GET }, params)
+    },
+
+    getById: (id: string) => {
+      return this.request(API_ENDPOINTS.FARMERS.DETAIL(id), { method: HTTP_METHODS.GET })
+    },
+
+    create: (data: any) => {
+      return this.request(API_ENDPOINTS.FARMERS.CREATE, {
+        method: HTTP_METHODS.POST,
+        body: JSON.stringify(data),
+      })
+    },
+
+    update: (id: string, data: any) => {
+      return this.request(API_ENDPOINTS.FARMERS.UPDATE(id), {
+        method: HTTP_METHODS.PUT,
+        body: JSON.stringify(data),
+      })
+    },
+
+    delete: (id: string) => {
+      return this.request(API_ENDPOINTS.FARMERS.DELETE(id), { method: HTTP_METHODS.DELETE })
+    },
+  }
+
+  // Farm APIs
+  farms = {
+    getAll: (params?: { farmerId?: string }) => {
+      return this.request<ApiResponse<any[]>>(API_ENDPOINTS.FARMS.LIST, { method: HTTP_METHODS.GET }, params)
+    },
+
+    getById: (id: string) => {
+      return this.request(API_ENDPOINTS.FARMS.DETAIL(id), { method: HTTP_METHODS.GET })
+    },
+
+    getByFarmerId: (farmerId: string) => {
+      return this.request(API_ENDPOINTS.FARMS.BY_FARMER(farmerId), { method: HTTP_METHODS.GET })
+    },
+
+    create: (data: any) => {
+      return this.request(API_ENDPOINTS.FARMS.CREATE, {
+        method: HTTP_METHODS.POST,
+        body: JSON.stringify(data),
+      })
+    },
+
+    update: (id: string, data: any) => {
+      return this.request(API_ENDPOINTS.FARMS.UPDATE(id), {
+        method: HTTP_METHODS.PUT,
+        body: JSON.stringify(data),
+      })
+    },
+
+    delete: (id: string) => {
+      return this.request(API_ENDPOINTS.FARMS.DELETE(id), { method: HTTP_METHODS.DELETE })
+    },
+  }
+
+  // Field APIs
+  fields = {
+    getAll: (params?: { farmId?: string }) => {
+      return this.request<ApiResponse<any[]>>(API_ENDPOINTS.FIELDS.LIST, { method: HTTP_METHODS.GET }, params)
+    },
+
+    getById: (id: string) => {
+      return this.request(API_ENDPOINTS.FIELDS.DETAIL(id), { method: HTTP_METHODS.GET })
+    },
+
+    getByFarmId: (farmId: string) => {
+      return this.request(API_ENDPOINTS.FIELDS.BY_FARM(farmId), { method: HTTP_METHODS.GET })
+    },
+
+    create: (data: any) => {
+      return this.request(API_ENDPOINTS.FIELDS.CREATE, {
+        method: HTTP_METHODS.POST,
+        body: JSON.stringify(data),
+      })
+    },
+
+    update: (id: string, data: any) => {
+      return this.request(API_ENDPOINTS.FIELDS.UPDATE(id), {
+        method: HTTP_METHODS.PUT,
+        body: JSON.stringify(data),
+      })
+    },
+
+    delete: (id: string) => {
+      return this.request(API_ENDPOINTS.FIELDS.DELETE(id), { method: HTTP_METHODS.DELETE })
+    },
+  }
+
+  // Inspection APIs
+  inspections = {
+    getAll: () => {
+      return this.request<ApiResponse<any[]>>(API_ENDPOINTS.INSPECTIONS.LIST, { method: HTTP_METHODS.GET })
+    },
+
+    getById: (id: string) => {
+      return this.request(API_ENDPOINTS.INSPECTIONS.DETAIL(id), { method: HTTP_METHODS.GET })
+    },
+
+    getChecklist: () => {
+      return this.request(API_ENDPOINTS.INSPECTIONS.CHECKLIST, { method: HTTP_METHODS.GET })
+    },
+
+    create: (data: any) => {
+      return this.request(API_ENDPOINTS.INSPECTIONS.CREATE, {
+        method: HTTP_METHODS.POST,
+        body: JSON.stringify(data),
+      })
+    },
+
+    update: (id: string, data: any) => {
+      return this.request(API_ENDPOINTS.INSPECTIONS.UPDATE(id), {
+        method: HTTP_METHODS.PUT,
+        body: JSON.stringify(data),
+      })
+    },
+
+    approve: (id: string, data: any) => {
+      return this.request(API_ENDPOINTS.INSPECTIONS.APPROVE(id), {
+        method: HTTP_METHODS.POST,
+        body: JSON.stringify(data),
+      })
+    },
+
+    reject: (id: string, data: { reason: string }) => {
+      return this.request(API_ENDPOINTS.INSPECTIONS.REJECT(id), {
+        method: HTTP_METHODS.POST,
+        body: JSON.stringify(data),
+      })
+    },
+
+    delete: (id: string) => {
+      return this.request(API_ENDPOINTS.INSPECTIONS.DELETE(id), { method: HTTP_METHODS.DELETE })
+    },
+  }
+
+  // Certificate APIs
+  certificates = {
+    getAll: () => {
+      return this.request<ApiResponse<any[]>>(API_ENDPOINTS.CERTIFICATES.LIST, { method: HTTP_METHODS.GET })
+    },
+
+    getById: (id: string) => {
+      return this.request(API_ENDPOINTS.CERTIFICATES.DETAIL(id), { method: HTTP_METHODS.GET })
+    },
+
+    create: (data: any) => {
+      return this.request(API_ENDPOINTS.CERTIFICATES.CREATE, {
+        method: HTTP_METHODS.POST,
+        body: JSON.stringify(data),
+      })
+    },
+
+    update: (id: string, data: any) => {
+      return this.request(API_ENDPOINTS.CERTIFICATES.UPDATE(id), {
+        method: HTTP_METHODS.PUT,
+        body: JSON.stringify(data),
+      })
+    },
+
+    delete: (id: string) => {
+      return this.request(API_ENDPOINTS.CERTIFICATES.DELETE(id), { method: HTTP_METHODS.DELETE })
+    },
+
+    downloadPDF: async (id: string): Promise<Blob> => {
+      const url = this.buildUrl(API_ENDPOINTS.CERTIFICATES.PDF(id))
+      const response = await fetch(url)
+      
+      if (!response.ok) {
+        throw new Error('Failed to download certificate PDF')
+      }
+      
+      return response.blob()
+    },
+  }
+
+  // Dashboard APIs
+  dashboard = {
+    getStats: () => {
+      return this.request(API_ENDPOINTS.DASHBOARD.STATS, { method: HTTP_METHODS.GET })
+    },
   }
 }
 
-export const apiClient = new ApiClient()
+// Export singleton instance
+export const api = new ApiClient()
+
+// Export the class for testing
+export { ApiClient }

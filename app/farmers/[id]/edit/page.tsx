@@ -16,6 +16,7 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useRouter } from "next/navigation"
+import { api } from "@/lib/api-client"
 
 interface EditFarmerPageProps {
   params: { id: string }
@@ -69,16 +70,7 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
         setLoading(true)
         setError(null)
 
-        const response = await fetch(`http://localhost:3002/api/farmers/${params.id}`)
-        if (!response.ok) {
-          if (response.status === 404) {
-            setError('Farmer not found')
-            return
-          }
-          throw new Error('Failed to fetch farmer')
-        }
-
-        const farmerData = await response.json()
+        const farmerData = await api.farmers.getById(params.id)
         setFarmer(farmerData)
 
         // Pre-populate form with farmer data
@@ -109,7 +101,11 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
         })
 
       } catch (err) {
-        setError(err instanceof Error ? err.message : 'Failed to fetch farmer')
+        if (err instanceof Error && err.message.includes('404')) {
+          setError('Farmer not found')
+        } else {
+          setError(err instanceof Error ? err.message : 'Failed to fetch farmer')
+        }
         console.error('Farmer fetch error:', err)
       } finally {
         setLoading(false)
@@ -128,18 +124,7 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch(`http://localhost:3002/api/farmers/${params.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to update farmer')
-      }
+      await api.farmers.update(params.id, formData)
 
       // Success - redirect back to farmer details
       router.push(`/farmers/${params.id}`)

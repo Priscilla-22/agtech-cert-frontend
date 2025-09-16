@@ -17,6 +17,7 @@ import {
 import { useAuth } from "@/contexts/AuthContext"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { Footer } from "@/components/layout/footer"
+import { api } from "@/lib/api-client"
 import {
   Bar,
   BarChart,
@@ -53,30 +54,27 @@ function DashboardContent() {
         setLoading(true)
         setError(null)
 
-        // Fetch all required data from backend
-        const [farmersRes, inspectionsRes, certificatesRes] = await Promise.all([
-          fetch('http://localhost:3002/api/farmers'),
-          fetch('http://localhost:3002/api/inspections'),
-          fetch('http://localhost:3002/api/certificates')
+        // Fetch all required data from backend using API client
+        const [farmersData, inspectionsData, certificatesData] = await Promise.all([
+          api.farmers.getAll(),
+          api.inspections.getAll(),
+          api.certificates.getAll()
         ])
 
-        if (!farmersRes.ok) throw new Error('Failed to fetch farmers')
-        if (!inspectionsRes.ok) throw new Error('Failed to fetch inspections')
-        if (!certificatesRes.ok) throw new Error('Failed to fetch certificates')
-
-        const farmersData = await farmersRes.json()
-        const inspectionsData = await inspectionsRes.json()
-        const certificatesData = await certificatesRes.json()
-
-        setFarmers(farmersData)
-        setInspections(inspectionsData)
-        setCertificates(certificatesData)
+        // Handle both array and object response formats
+        setFarmers(Array.isArray(farmersData) ? farmersData : farmersData.data || [])
+        setInspections(Array.isArray(inspectionsData) ? inspectionsData : inspectionsData.data || [])
+        setCertificates(Array.isArray(certificatesData) ? certificatesData : certificatesData.data || [])
 
         // Generate dashboard stats from real data
-        const totalFarmers = farmersData.length
-        const activeCertificates = certificatesData.filter((c: any) => c.status === 'active').length
-        const pendingInspections = inspectionsData.filter((i: any) => i.status === 'pending').length
-        const completedInspections = inspectionsData.filter((i: any) => i.status === 'completed').length
+        const farmersArray = Array.isArray(farmersData) ? farmersData : farmersData.data || []
+        const certificatesArray = Array.isArray(certificatesData) ? certificatesData : certificatesData.data || []
+        const inspectionsArray = Array.isArray(inspectionsData) ? inspectionsData : inspectionsData.data || []
+        
+        const totalFarmers = farmersArray.length
+        const activeCertificates = certificatesArray.filter((c: any) => c.status === 'active').length
+        const pendingInspections = inspectionsArray.filter((i: any) => i.status === 'pending').length
+        const completedInspections = inspectionsArray.filter((i: any) => i.status === 'completed').length
 
         // Calculate revenue from real data (this should come from backend)
         const monthlyRevenue = 0 // Remove hardcoded calculation

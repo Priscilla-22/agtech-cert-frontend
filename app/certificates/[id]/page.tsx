@@ -1,6 +1,8 @@
 "use client"
 
-import { Header } from "@/components/layout/header"
+import { Sidebar } from "@/components/layout/sidebar"
+import { Navbar } from "@/components/layout/navbar"
+import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { StatusBadge } from "@/components/ui/status-badge"
@@ -47,14 +49,20 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-background">
-        <Header />
-        <main className="container py-6 flex items-center justify-center">
-          <div className="text-center space-y-4">
-            <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
-            <p className="text-muted-foreground">Loading certificate...</p>
+      <div className="bg-background">
+        <div className="flex min-h-screen">
+          <Sidebar />
+          <div className="flex-1 flex flex-col">
+            <Navbar />
+            <main className="flex-1 p-6 flex items-center justify-center">
+              <div className="text-center space-y-4">
+                <div className="w-8 h-8 border-2 border-primary border-t-transparent rounded-full animate-spin mx-auto" />
+                <p className="text-muted-foreground">Loading certificate...</p>
+              </div>
+            </main>
           </div>
-        </main>
+        </div>
+        <Footer />
       </div>
     )
   }
@@ -66,10 +74,15 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
   const isExpiringSoon = new Date(certificate.expiryDate) <= new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
 
   return (
-    <div className="min-h-screen bg-background">
-      <Header />
-      <main className="container py-6">
-        <div className="flex flex-col gap-6">
+    <div className="bg-background">
+      <div className="flex min-h-screen">
+        <Sidebar />
+
+        <div className="flex-1 flex flex-col">
+          <Navbar />
+
+          <main className="flex-1 p-6">
+            <div className="max-w-7xl mx-auto space-y-6 pb-96">
           <div className="flex items-center gap-4">
             <Button variant="ghost" size="sm" asChild>
               <Link href="/certificates">
@@ -195,8 +208,11 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
               </Card>
             </div>
           </div>
+            </div>
+          </main>
         </div>
-      </main>
+      </div>
+      <Footer />
     </div>
   )
 }

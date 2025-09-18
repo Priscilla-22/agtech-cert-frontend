@@ -66,7 +66,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
 
   if (loading) {
     return (
-      <div style={{ backgroundColor: '#faf9f7' }}>
+      <div className="bg-background">
         <div className="flex min-h-screen">
           <Sidebar />
           <div className="flex-1 flex flex-col">
@@ -86,7 +86,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
 
   if (error) {
     return (
-      <div style={{ backgroundColor: '#faf9f7' }}>
+      <div className="bg-background">
         <div className="flex min-h-screen">
           <Sidebar />
           <div className="flex-1 flex flex-col">
@@ -114,7 +114,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
 
   if (!farmer) {
     return (
-      <div style={{ backgroundColor: '#faf9f7' }}>
+      <div className="bg-background">
         <div className="flex min-h-screen">
           <Sidebar />
           <div className="flex-1 flex flex-col">
@@ -136,7 +136,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
   }
 
   return (
-    <div style={{ backgroundColor: '#faf9f7' }}>
+    <div className="bg-background">
       <div className="flex min-h-screen">
         <Sidebar />
         <div className="flex-1 flex flex-col">
@@ -161,7 +161,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                   <div className="bg-white rounded-3xl shadow-lg p-6">
                     {/* Avatar */}
                     <div className="text-center mb-6">
-                      <div className="w-24 h-24 bg-gradient-to-br rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #fb923c, #f97316)' }}>
+                      <div className="w-24 h-24 bg-gradient-to-br rounded-full flex items-center justify-center mx-auto mb-4 shadow-lg" style={{ background: 'linear-gradient(to bottom right, #f4a261, #e8ddc7)' }}>
                         <User className="w-12 h-12 text-white" />
                       </div>
                       <h2 className="text-xl font-bold text-gray-900 mb-1">{farmer.name}</h2>
@@ -169,7 +169,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                         <MapPin className="w-4 h-4 mr-1" />
                         <span className="text-sm">{farmer.county}, {farmer.subCounty}</span>
                       </div>
-                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#fb923c', color: 'white' }}>
+                      <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#f4a261', color: 'white' }}>
                         <CheckCircle className="w-3 h-3 mr-1" />
                         {farmer.certificationStatus || 'Active'}
                       </span>
@@ -194,7 +194,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                     </div>
 
                     {/* Action Button */}
-                    <Button asChild className="w-full" style={{ backgroundColor: '#fb923c', borderColor: '#fb923c' }}>
+                    <Button asChild className="w-full" style={{ backgroundColor: '#f4a261', borderColor: '#f4a261' }}>
                       <Link href={`/farmers/${farmer.id}/edit`}>
                         <Edit className="mr-2 h-4 w-4" />
                         Edit Farmer
@@ -208,7 +208,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                       <h3 className="font-bold text-gray-900 mb-2">{farmer.farmingType}</h3>
                       <div className="flex items-center justify-between mb-3">
                         <span className="text-sm text-gray-600">Land Size</span>
-                        <span className="font-semibold" style={{ color: '#fb923c' }}>{farmer.totalLandSize || 'N/A'} hectares</span>
+                        <span className="font-semibold" style={{ color: '#f4a261' }}>{farmer.totalLandSize || 'N/A'} hectares</span>
                       </div>
                       <div className="space-y-2 text-sm text-gray-600">
                         <div className="flex justify-between">
@@ -216,10 +216,10 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                           <span>{farmer.organicExperience || 'Not specified'}</span>
                         </div>
                         <div className="flex items-center gap-1">
-                          <Star className="w-3 h-3" style={{ color: '#fb923c' }} fill="currentColor" />
-                          <Star className="w-3 h-3" style={{ color: '#fb923c' }} fill="currentColor" />
-                          <Star className="w-3 h-3" style={{ color: '#fb923c' }} fill="currentColor" />
-                          <Star className="w-3 h-3" style={{ color: '#fb923c' }} fill="currentColor" />
+                          <Star className="w-3 h-3" style={{ color: '#f4a261' }} fill="currentColor" />
+                          <Star className="w-3 h-3" style={{ color: '#f4a261' }} fill="currentColor" />
+                          <Star className="w-3 h-3" style={{ color: '#f4a261' }} fill="currentColor" />
+                          <Star className="w-3 h-3" style={{ color: '#f4a261' }} fill="currentColor" />
                           <Star className="w-3 h-3 text-gray-300" />
                           <span className="ml-2 text-xs">4.0</span>
                         </div>
@@ -236,8 +236,8 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                       <button
                         className="pb-2 px-1 border-b-2 font-medium text-sm transition-colors"
                         style={{
-                          borderColor: activeTab === 'farm-details' ? '#fb923c' : 'transparent',
-                          color: activeTab === 'farm-details' ? '#fb923c' : '#6b7280'
+                          borderColor: activeTab === 'farm-details' ? '#f4a261' : 'transparent',
+                          color: activeTab === 'farm-details' ? '#f4a261' : '#6b7280'
                         }}
                         onClick={() => setActiveTab('farm-details')}
                       >
@@ -246,8 +246,8 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                       <button
                         className="pb-2 px-1 border-b-2 font-medium text-sm transition-colors hover:text-gray-700"
                         style={{
-                          borderColor: activeTab === 'crops' ? '#fb923c' : 'transparent',
-                          color: activeTab === 'crops' ? '#fb923c' : '#6b7280'
+                          borderColor: activeTab === 'crops' ? '#f4a261' : 'transparent',
+                          color: activeTab === 'crops' ? '#f4a261' : '#6b7280'
                         }}
                         onClick={() => setActiveTab('crops')}
                       >
@@ -256,8 +256,8 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                       <button
                         className="pb-2 px-1 border-b-2 font-medium text-sm transition-colors hover:text-gray-700"
                         style={{
-                          borderColor: activeTab === 'certifications' ? '#fb923c' : 'transparent',
-                          color: activeTab === 'certifications' ? '#fb923c' : '#6b7280'
+                          borderColor: activeTab === 'certifications' ? '#f4a261' : 'transparent',
+                          color: activeTab === 'certifications' ? '#f4a261' : '#6b7280'
                         }}
                         onClick={() => setActiveTab('certifications')}
                       >
@@ -266,8 +266,8 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                       <button
                         className="pb-2 px-1 border-b-2 font-medium text-sm transition-colors hover:text-gray-700"
                         style={{
-                          borderColor: activeTab === 'history' ? '#fb923c' : 'transparent',
-                          color: activeTab === 'history' ? '#fb923c' : '#6b7280'
+                          borderColor: activeTab === 'history' ? '#f4a261' : 'transparent',
+                          color: activeTab === 'history' ? '#f4a261' : '#6b7280'
                         }}
                         onClick={() => setActiveTab('history')}
                       >
@@ -319,7 +319,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                           <h4 className="font-bold text-gray-900 mb-3">Primary Crops</h4>
                           <div className="flex flex-wrap gap-2">
                             {farmer.primaryCrops.map((crop: string, index: number) => (
-                              <span key={index} className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#fed7aa', color: '#fb923c' }}>
+                              <span key={index} className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#f4a261', color: '#6b5843' }}>
                                 {crop}
                               </span>
                             ))}
@@ -357,7 +357,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                                 <h5 className="font-medium text-gray-700 mb-3">Primary Crops</h5>
                                 <div className="flex flex-wrap gap-2">
                                   {farmer.primaryCrops.map((crop: string, index: number) => (
-                                    <span key={index} className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#fed7aa', color: '#fb923c' }}>
+                                    <span key={index} className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#f4a261', color: '#6b5843' }}>
                                       {crop}
                                     </span>
                                   ))}
@@ -384,7 +384,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                             <div className="p-4 border border-gray-200 rounded-lg">
                               <div className="flex items-center justify-between mb-2">
                                 <h5 className="font-medium text-gray-900">Organic Certification</h5>
-                                <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#fb923c', color: 'white' }}>
+                                <span className="px-3 py-1 rounded-full text-sm font-medium" style={{ backgroundColor: '#f4a261', color: 'white' }}>
                                   {farmer.certificationStatus || 'Active'}
                                 </span>
                               </div>
@@ -467,7 +467,7 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                               size="sm"
                               asChild
                               className="rounded-full"
-                              style={{ borderColor: '#fb923c', color: '#fb923c' }}
+                              style={{ borderColor: '#f4a261', color: '#f4a261' }}
                             >
                               <Link href={`/farms/${farm.id}`}>View Farm</Link>
                             </Button>

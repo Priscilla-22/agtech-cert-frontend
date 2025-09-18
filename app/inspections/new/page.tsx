@@ -30,24 +30,27 @@ export default function NewInspectionPage() {
   const [farmers, setFarmers] = useState<any[]>([])
   const [farms, setFarms] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
+  const [submitting, setSubmitting] = useState(false)
 
   // Fetch farmers and farms data
   useEffect(() => {
     const fetchData = async () => {
       try {
         const [farmersRes, farmsRes] = await Promise.all([
-          fetch('http://localhost:3002/api/farmers'),
-          fetch('http://localhost:3002/api/farms')
+          fetch('/api/farmers'),
+          fetch('/api/farms')
         ])
 
         if (farmersRes.ok) {
           const farmersData = await farmersRes.json()
-          setFarmers(farmersData)
+          // Backend returns data in {data: [], total: ...} format
+          setFarmers(farmersData.data || farmersData)
         }
 
         if (farmsRes.ok) {
           const farmsData = await farmsRes.json()
-          setFarms(farmsData)
+          // Handle both direct array and {data: []} format
+          setFarms(farmsData.data || farmsData)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -59,7 +62,7 @@ export default function NewInspectionPage() {
     fetchData()
   }, [])
 
-  const selectedFarm = farms.find((f) => f.id === formData.farmId)
+  const selectedFarm = farms.find((f) => f.id.toString() === formData.farmId)
   const selectedFarmer = selectedFarm ? farmers.find((f) => f.id === selectedFarm.farmerId) : null
 
   // Auth check
@@ -87,24 +90,49 @@ export default function NewInspectionPage() {
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
 
+    if (!formData.farmId || !formData.inspectorName || !formData.scheduledDate) {
+      alert('Please fill in all required fields')
+      return
+    }
+
+    setSubmitting(true)
+
     try {
-      const response = await fetch('http://localhost:3002/api/inspections', {
+      // Convert farmId back to number for backend
+      const submissionData = {
+        ...formData,
+        farmId: parseInt(formData.farmId)
+      }
+
+      console.log('Submitting inspection data:', submissionData)
+
+      const response = await fetch('/api/inspections', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
         },
-        body: JSON.stringify(formData),
+        body: JSON.stringify(submissionData),
       })
 
+      const responseData = await response.json()
+      console.log('Response:', responseData)
+
       if (response.ok) {
-        console.log("Inspection scheduled successfully")
-        // Redirect to inspections list or show success message
-        window.location.href = '/inspections'
+        alert("Inspection scheduled successfully!")
+        router.push('/inspections')
       } else {
-        console.error("Failed to schedule inspection")
+        console.error("Failed to schedule inspection:", responseData)
+        if (responseData.errors && Array.isArray(responseData.errors)) {
+          alert(`Failed to schedule inspection:\n${responseData.errors.join('\n')}`)
+        } else {
+          alert(`Failed to schedule inspection: ${responseData.error || 'Unknown error'}`)
+        }
       }
     } catch (error) {
       console.error("Error scheduling inspection:", error)
+      alert('Error scheduling inspection. Please try again.')
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -172,8 +200,8 @@ export default function NewInspectionPage() {
                         farms.map((farm) => {
                           const farmer = farmers.find((f) => f.id === farm.farmerId)
                           return (
-                            <SelectItem key={farm.id} value={farm.id}>
-                              {farm.name} - {farmer?.name || 'Unknown Farmer'}
+                            <SelectItem key={farm.id} value={farm.id.toString()}>
+                              {farm.farmName || farm.name} - {farmer?.name || 'Unknown Farmer'} (owner)
                             </SelectItem>
                           )
                         })
@@ -249,9 +277,9 @@ export default function NewInspectionPage() {
                 </div>
 
                 <div className="flex gap-4">
-                  <Button type="submit">
+                  <Button type="submit" disabled={submitting}>
                     <Calendar className="mr-2 h-4 w-4" />
-                    Schedule Inspection
+                    {submitting ? 'Scheduling...' : 'Schedule Inspection'}
                   </Button>
                   <Button type="button" variant="outline" asChild>
                     <Link href="/inspections">Cancel</Link>

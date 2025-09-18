@@ -14,6 +14,7 @@ import type { Certificate } from "@/lib/types"
 import Link from "next/link"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useEffect, useState } from "react"
+import { api } from "@/lib/api-client"
 
 const columns: ColumnDef<Certificate>[] = [
   {
@@ -34,6 +35,9 @@ const columns: ColumnDef<Certificate>[] = [
     header: "Crops",
     cell: ({ row }) => {
       const crops = row.getValue("cropTypes") as string[]
+      if (!crops || !Array.isArray(crops) || crops.length === 0) {
+        return <span className="text-muted-foreground text-sm">No crops specified</span>
+      }
       return (
         <div className="flex flex-wrap gap-1">
           {crops.slice(0, 2).map((crop) => (
@@ -89,7 +93,13 @@ const columns: ColumnDef<Certificate>[] = [
               <Eye className="h-4 w-4" />
             </Link>
           </Button>
-          <Button variant="ghost" size="sm">
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={() => {
+              window.open(`http://localhost:3002/api/certificates/${certificate.id}/pdf`, '_blank')
+            }}
+          >
             <Download className="h-4 w-4" />
           </Button>
           <Button variant="ghost" size="sm">
@@ -114,12 +124,7 @@ function CertificatesContent() {
         setLoading(true)
         setError(null)
 
-        const response = await fetch('http://localhost:3002/api/certificates')
-        if (!response.ok) {
-          throw new Error('Failed to fetch certificates')
-        }
-
-        const certificatesData = await response.json()
+        const certificatesData = await api.certificates.getAll()
         setCertificates(certificatesData)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch certificates')

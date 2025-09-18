@@ -6,14 +6,6 @@ import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table"
-import {
   AlertDialog,
   AlertDialogAction,
   AlertDialogCancel,
@@ -39,6 +31,8 @@ import {
   User,
   Calendar,
   Building2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { api } from "@/lib/api-client"
@@ -80,7 +74,10 @@ function FarmsContent() {
   const [searchTerm, setSearchTerm] = useState("")
   const [statusFilter, setStatusFilter] = useState("all")
   const [certificationFilter, setCertificationFilter] = useState("all")
+  const [currentPage, setCurrentPage] = useState(0)
   const { toast } = useToast()
+
+  const ITEMS_PER_PAGE = 2
 
   const fetchFarms = async () => {
     try {
@@ -107,7 +104,32 @@ function FarmsContent() {
 
   useEffect(() => {
     fetchFarms()
+    setCurrentPage(0) // Reset to first page when filters change
   }, [searchTerm, statusFilter, certificationFilter])
+
+  // Filter farms based on current filters
+  const filteredFarms = farms.filter(farm => {
+    const matchesSearch = !searchTerm ||
+      farm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      farm.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      (farm.farmerName && farm.farmerName.toLowerCase().includes(searchTerm.toLowerCase()))
+
+    const matchesStatus = statusFilter === "all" || farm.status === statusFilter
+    const matchesCertification = certificationFilter === "all" || farm.certificationStatus === certificationFilter
+
+    return matchesSearch && matchesStatus && matchesCertification
+  })
+
+  // Calculate pagination
+  const totalPages = Math.ceil(filteredFarms.length / ITEMS_PER_PAGE)
+  const paginatedFarms = filteredFarms.slice(
+    currentPage * ITEMS_PER_PAGE,
+    (currentPage + 1) * ITEMS_PER_PAGE
+  )
+
+  const handlePageChange = (page: number) => {
+    setCurrentPage(page)
+  }
 
   const handleDeleteFarm = async (farmId: number) => {
     try {
@@ -282,92 +304,46 @@ function FarmsContent() {
                 </CardContent>
               </Card>
 
-              {/* Farms Table */}
+              {/* Farms Cards */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Farms ({farms.length})</CardTitle>
+                  <CardTitle>Farms ({filteredFarms.length})</CardTitle>
                   <CardDescription>
                     All registered farms in the system
+                    {filteredFarms.length !== farms.length && ` - Showing ${filteredFarms.length} of ${farms.length} farms`}
                   </CardDescription>
                 </CardHeader>
                 <CardContent>
-                  {farms.length === 0 ? (
+                  {filteredFarms.length === 0 ? (
                     <div className="text-center py-8">
                       <Building2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
                       <h3 className="mt-2 text-sm font-medium text-muted-foreground">No farms found</h3>
                       <p className="mt-1 text-sm text-muted-foreground">
-                        Get started by adding your first farm.
+                        {farms.length === 0 ? "Get started by adding your first farm." : "Try adjusting your search or filters."}
                       </p>
-                      <div className="mt-6">
-                        <Link href="/farms/new">
-                          <Button>Add New Farm</Button>
-                        </Link>
-                      </div>
+                      {farms.length === 0 && (
+                        <div className="mt-6">
+                          <Link href="/farms/new">
+                            <Button>Add New Farm</Button>
+                          </Link>
+                        </div>
+                      )}
                     </div>
                   ) : (
-                    <div className="rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow>
-                            <TableHead>Farm Name</TableHead>
-                            <TableHead>Farmer</TableHead>
-                            <TableHead>Location</TableHead>
-                            <TableHead>Size</TableHead>
-                            <TableHead>Crops</TableHead>
-                            <TableHead>Status</TableHead>
-                            <TableHead>Certification</TableHead>
-                            <TableHead>Registered</TableHead>
-                            <TableHead className="w-12"></TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {farms.map((farm) => (
-                            <TableRow key={farm.id}>
-                              <TableCell className="font-medium">{farm.name}</TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <User className="w-4 h-4 text-muted-foreground" />
-                                  {farm.farmerName || `Farmer #${farm.farmerId}`}
+                    <div className="space-y-6">
+                      {/* Farm Cards Grid */}
+                      <div className="grid gap-6 md:grid-cols-2">
+                        {paginatedFarms.map((farm) => (
+                          <Card key={farm.id} className="border border-gray-200 hover:shadow-lg transition-shadow">
+                            <CardHeader className="pb-3">
+                              <div className="flex items-start justify-between">
+                                <div className="space-y-1">
+                                  <CardTitle className="text-lg">{farm.name}</CardTitle>
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <User className="w-4 h-4" />
+                                    {farm.farmerName || `Farmer #${farm.farmerId}`}
+                                  </div>
                                 </div>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <MapPin className="w-4 h-4 text-muted-foreground" />
-                                  {farm.location}
-                                </div>
-                              </TableCell>
-                              <TableCell>{farm.size} ha</TableCell>
-                              <TableCell>
-                                <div className="flex flex-wrap gap-1">
-                                  {farm.cropTypes?.slice(0, 2).map((crop) => (
-                                    <Badge key={crop} variant="secondary" className="text-xs">
-                                      {crop}
-                                    </Badge>
-                                  ))}
-                                  {farm.cropTypes?.length > 2 && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      +{farm.cropTypes.length - 2}
-                                    </Badge>
-                                  )}
-                                </div>
-                              </TableCell>
-                              <TableCell>
-                                <Badge className={getStatusBadge(farm.status)}>
-                                  {farm.status}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <Badge className={getCertificationBadge(farm.certificationStatus)}>
-                                  {farm.certificationStatus}
-                                </Badge>
-                              </TableCell>
-                              <TableCell>
-                                <div className="flex items-center gap-2">
-                                  <Calendar className="w-4 h-4 text-muted-foreground" />
-                                  {new Date(farm.registrationDate).toLocaleDateString()}
-                                </div>
-                              </TableCell>
-                              <TableCell>
                                 <DropdownMenu>
                                   <DropdownMenuTrigger asChild>
                                     <Button variant="ghost" size="sm">
@@ -418,11 +394,170 @@ function FarmsContent() {
                                     </AlertDialog>
                                   </DropdownMenuContent>
                                 </DropdownMenu>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
+                              </div>
+                            </CardHeader>
+                            <CardContent className="space-y-4">
+                              {/* Location and Size */}
+                              <div className="grid grid-cols-2 gap-4">
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <MapPin className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">Location</span>
+                                  </div>
+                                  <p className="text-sm font-medium">{farm.location}</p>
+                                </div>
+                                <div className="space-y-1">
+                                  <div className="flex items-center gap-2 text-sm">
+                                    <Building2 className="w-4 h-4 text-muted-foreground" />
+                                    <span className="text-muted-foreground">Size</span>
+                                  </div>
+                                  <p className="text-sm font-medium">{farm.size} ha</p>
+                                </div>
+                              </div>
+
+                              {/* Crops */}
+                              <div className="space-y-2">
+                                <span className="text-sm text-muted-foreground">Crops</span>
+                                <div className="flex flex-wrap gap-1">
+                                  {farm.cropTypes?.slice(0, 3).map((crop) => (
+                                    <Badge key={crop} variant="secondary" className="text-xs">
+                                      {crop}
+                                    </Badge>
+                                  ))}
+                                  {farm.cropTypes?.length > 3 && (
+                                    <Badge variant="secondary" className="text-xs">
+                                      +{farm.cropTypes.length - 3}
+                                    </Badge>
+                                  )}
+                                </div>
+                              </div>
+
+                              {/* Status and Certification */}
+                              <div className="flex items-center justify-between">
+                                <div className="space-y-1">
+                                  <span className="text-sm text-muted-foreground">Status</span>
+                                  <div>
+                                    <Badge className={getStatusBadge(farm.status)}>
+                                      {farm.status}
+                                    </Badge>
+                                  </div>
+                                </div>
+                                <div className="space-y-1 text-right">
+                                  <span className="text-sm text-muted-foreground">Certification</span>
+                                  <div>
+                                    <Badge className={getCertificationBadge(farm.certificationStatus)}>
+                                      {farm.certificationStatus}
+                                    </Badge>
+                                  </div>
+                                </div>
+                              </div>
+
+                              {/* Registration Date */}
+                              <div className="pt-2 border-t">
+                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                  <Calendar className="w-4 h-4" />
+                                  Registered {new Date(farm.registrationDate).toLocaleDateString()}
+                                </div>
+                              </div>
+                            </CardContent>
+                          </Card>
+                        ))}
+                      </div>
+
+                      {/* Pagination */}
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-center gap-1 pt-4">
+                          {/* Previous Button */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage - 1)}
+                            disabled={currentPage === 0}
+                            className="w-10 h-10 p-0 rounded-full border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            <ChevronLeft className="h-4 w-4" />
+                          </Button>
+
+                          {/* First Page */}
+                          {currentPage > 2 && (
+                            <>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePageChange(0)}
+                                className="w-10 h-10 p-0 rounded-full border-gray-300 hover:bg-gray-50"
+                              >
+                                1
+                              </Button>
+                              {currentPage > 3 && (
+                                <span className="px-2 text-muted-foreground">...</span>
+                              )}
+                            </>
+                          )}
+
+                          {/* Page Numbers */}
+                          {Array.from({ length: Math.min(5, totalPages) }, (_, i) => {
+                            // Calculate the range of pages to show
+                            let startPage = Math.max(0, currentPage - 2)
+                            let endPage = Math.min(totalPages - 1, startPage + 4)
+
+                            // Adjust start if we're near the end
+                            if (endPage - startPage < 4) {
+                              startPage = Math.max(0, endPage - 4)
+                            }
+
+                            const pageIndex = startPage + i
+
+                            if (pageIndex > endPage) return null
+
+                            const isCurrentPage = pageIndex === currentPage
+
+                            return (
+                              <Button
+                                key={pageIndex}
+                                variant={isCurrentPage ? "default" : "outline"}
+                                size="sm"
+                                onClick={() => handlePageChange(pageIndex)}
+                                className={`w-10 h-10 p-0 rounded-full ${
+                                  isCurrentPage
+                                    ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                                    : "border-gray-300 hover:bg-gray-50"
+                                }`}
+                              >
+                                {pageIndex + 1}
+                              </Button>
+                            )
+                          })}
+
+                          {/* Last Page */}
+                          {currentPage < totalPages - 3 && totalPages > 5 && (
+                            <>
+                              {currentPage < totalPages - 4 && (
+                                <span className="px-2 text-muted-foreground">...</span>
+                              )}
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                onClick={() => handlePageChange(totalPages - 1)}
+                                className="w-10 h-10 p-0 rounded-full border-gray-300 hover:bg-gray-50"
+                              >
+                                {totalPages}
+                              </Button>
+                            </>
+                          )}
+
+                          {/* Next Button */}
+                          <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={() => handlePageChange(currentPage + 1)}
+                            disabled={currentPage === totalPages - 1}
+                            className="w-10 h-10 p-0 rounded-full border-gray-300 hover:bg-gray-50 disabled:opacity-50"
+                          >
+                            <ChevronRight className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      )}
                     </div>
                   )}
                 </CardContent>

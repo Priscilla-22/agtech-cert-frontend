@@ -363,7 +363,7 @@ export default function FarmersPage() {
           <Navbar />
 
           <main className="flex-1 p-3 sm:p-4 md:p-6">
-            <div className="max-w-7xl mx-auto space-y-4 md:space-y-6 pb-20 md:pb-96">
+            <div className="max-w-full mx-auto space-y-4 md:space-y-6 pb-20 md:pb-96">
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
                   <h1 className="text-2xl sm:text-3xl font-space-grotesk font-bold text-foreground">Farmers</h1>

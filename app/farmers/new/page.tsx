@@ -23,6 +23,13 @@ import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api-client"
 
+// Generate unique 5-character member number for preview
+const generateMemberNumber = () => {
+  const timestamp = Date.now().toString(36).slice(-3).toUpperCase();
+  const random = Math.random().toString(36).substr(2, 2).toUpperCase();
+  return `${timestamp}${random}`;
+};
+
 const STEPS = [
   {
     id: 1,
@@ -67,6 +74,7 @@ function NewFarmerContent() {
   const [currentStep, setCurrentStep] = useState(1)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
+  const [memberNumber] = useState(generateMemberNumber()) // Generate once when component mounts
   const [formData, setFormData] = useState({
     // Step 1: Personal & Contact Info
     name: "",
@@ -222,6 +230,12 @@ function NewFarmerContent() {
       case 1:
         return (
           <div className="space-y-8 ">
+            {/* Member Number Section */}
+            <div className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-md" style={{ backgroundColor: '#f4a261', border: '1px solid #e8ddc7' }}>
+              <span className="text-xs font-medium" style={{ color: '#8b7355' }}>Member ID:</span>
+              <span className="font-mono text-sm font-bold" style={{ color: '#6b5843' }}>{memberNumber}</span>
+            </div>
+
             {/* Personal Information Section */}
             <div className="space-y-6">
               <div className="pb-3 border-b border-green-100">
@@ -808,6 +822,7 @@ function NewFarmerContent() {
                 <div className="space-y-3">
                   <h5 className="font-medium mb-2 border-b border-green-200 pb-1">Personal Information</h5>
                   <div className="space-y-1">
+                    <p><strong>Member ID:</strong> <span className="font-mono font-semibold" style={{ color: '#6b5843' }}>{memberNumber}</span></p>
                     <p><strong>Name:</strong> {formData.name}</p>
                     <p><strong>Email:</strong> {formData.email}</p>
                     <p><strong>Phone:</strong> {formData.phone}</p>

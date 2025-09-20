@@ -12,6 +12,7 @@ import { Leaf, Eye, EyeOff, Mail } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
+import Image from "next/image"
 
 export default function LoginPage() {
   const [email, setEmail] = useState("")
@@ -50,122 +51,165 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-green-50 via-emerald-50 to-teal-50 flex items-center justify-center p-3 sm:p-4 safe-area-top safe-area-bottom">
-      <div className="absolute top-10 sm:top-20 left-4 sm:left-20 w-16 sm:w-32 h-16 sm:h-32 bg-primary/10 organic-shape floating-animation" />
+    <div className="min-h-screen bg-gradient-to-br from-green-50/80 via-emerald-50/60 to-teal-50/40 flex items-center justify-center p-4 relative overflow-hidden">
+      {/* Enhanced background decorative elements */}
+      <div className="absolute top-0 right-0 w-96 h-96 bg-gradient-to-bl from-primary/10 to-transparent rounded-full blur-3xl animate-pulse" />
+      <div className="absolute bottom-0 left-0 w-96 h-96 bg-gradient-to-tr from-accent/10 to-transparent rounded-full blur-3xl animate-pulse" style={{ animationDelay: "1s" }} />
+      <div className="absolute top-20 left-20 w-32 h-32 bg-gradient-to-br from-primary/5 to-accent/5 organic-shape floating-animation" />
       <div
-        className="absolute bottom-10 sm:bottom-20 right-4 sm:right-20 w-12 sm:w-24 h-12 sm:h-24 bg-accent/10 organic-shape-alt floating-animation"
+        className="absolute bottom-20 right-20 w-24 h-24 bg-gradient-to-br from-accent/5 to-primary/5 organic-shape-alt floating-animation"
         style={{ animationDelay: "2s" }}
       />
 
-      <Card className="w-full max-w-sm sm:max-w-md shadow-lg border-0 mx-auto">
-        <CardHeader className="space-y-3 sm:space-y-4 text-center p-4 sm:p-6">
-          <div className="mx-auto w-10 sm:w-12 h-10 sm:h-12 bg-primary/10 rounded-lg flex items-center justify-center">
-            <Leaf className="w-5 sm:w-6 h-5 sm:h-6 text-primary" />
-          </div>
-          <div>
-            <CardTitle className="text-xl sm:text-2xl font-space-grotesk" style={{ color: '#1f3408' }}>Welcome back</CardTitle>
-            <CardDescription className="text-sm sm:text-base">Sign in to your GreenCert account</CardDescription>
-          </div>
-        </CardHeader>
+      <Card className="w-full max-w-4xl shadow-2xl border-0 mx-auto bg-gradient-to-br from-card/90 to-card/70 backdrop-blur-xl relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
 
-        <CardContent className="p-4 sm:p-6 pt-0">
-          <form onSubmit={handleLogin} className="mobile-form">
-            <div className="space-y-2">
-              <Label htmlFor="email" className="text-responsive-sm">Email</Label>
-              <Input
-                id="email"
-                type="email"
-                placeholder="Enter your email"
-                value={email}
-                onChange={(e) => setEmail(e.target.value)}
-                required
-                className="h-11 sm:h-12 text-base"
-              />
-            </div>
+        {/* Two Column Layout inside the Card */}
+        <div className="relative z-10 grid lg:grid-cols-2 min-h-[600px]">
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-responsive-sm">Password</Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="Enter your password"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  required
-                  className="h-11 sm:h-12 pr-10 text-base"
-                />
+          {/* Left Column - Login Form */}
+          <div className="p-8 lg:p-12 flex flex-col justify-center">
+            <div className="space-y-6">
+              {/* Header */}
+              <div className="text-center lg:text-left space-y-6">
+                <div className="mx-auto lg:mx-0 relative w-fit">
+                  <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-2xl blur-xl" />
+                  <div className="relative w-16 h-16 bg-gradient-to-br from-primary/10 to-accent/10 rounded-2xl flex items-center justify-center border border-primary/20 shadow-lg">
+                    <Leaf className="w-8 h-8 text-primary" />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <CardTitle className="text-3xl font-bold bg-gradient-to-r from-foreground via-primary to-accent bg-clip-text text-transparent">Welcome back</CardTitle>
+                  <CardDescription className="text-base text-muted-foreground">Sign in to your Pesira account</CardDescription>
+                </div>
+              </div>
+
+              {/* Login Form */}
+              <form onSubmit={handleLogin} className="space-y-6">
+                <div className="space-y-3">
+                  <Label htmlFor="email" className="text-sm font-semibold text-foreground">Email Address</Label>
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl blur-sm" />
+                    <Input
+                      id="email"
+                      type="email"
+                      placeholder="Enter your email"
+                      value={email}
+                      onChange={(e) => setEmail(e.target.value)}
+                      required
+                      className="relative h-12 text-base bg-gradient-to-r from-muted/10 to-muted/5 border border-border/50 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all duration-300"
+                    />
+                  </div>
+                </div>
+
+                <div className="space-y-3">
+                  <Label htmlFor="password" className="text-sm font-semibold text-foreground">Password</Label>
+                  <div className="relative">
+                    <div className="absolute inset-0 bg-gradient-to-r from-muted/20 to-muted/10 rounded-xl blur-sm" />
+                    <Input
+                      id="password"
+                      type={showPassword ? "text" : "password"}
+                      placeholder="Enter your password"
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      required
+                      className="relative h-12 pr-12 text-base bg-gradient-to-r from-muted/10 to-muted/5 border border-border/50 rounded-xl focus-visible:ring-2 focus-visible:ring-primary/20 focus-visible:border-primary/50 transition-all duration-300"
+                    />
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="absolute right-2 top-1/2 -translate-y-1/2 h-8 w-8 p-0 hover:bg-primary/10 rounded-lg transition-all duration-300"
+                      onClick={() => setShowPassword(!showPassword)}
+                    >
+                      {showPassword ? (
+                        <EyeOff className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors duration-300" />
+                      ) : (
+                        <Eye className="h-4 w-4 text-muted-foreground hover:text-primary transition-colors duration-300" />
+                      )}
+                    </Button>
+                  </div>
+                </div>
+
                 <Button
-                  type="button"
-                  variant="ghost"
-                  size="sm"
-                  className="absolute right-0 top-0 h-full px-3 py-2 hover:bg-transparent"
-                  onClick={() => setShowPassword(!showPassword)}
+                  type="submit"
+                  className="w-full h-12 bg-gradient-to-r from-primary to-accent hover:from-primary/90 hover:to-accent/90 text-primary-foreground text-base font-semibold rounded-xl shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-[1.02] relative overflow-hidden group"
+                  disabled={isLoading}
                 >
-                  {showPassword ? (
-                    <EyeOff className="h-4 w-4 text-muted-foreground" />
-                  ) : (
-                    <Eye className="h-4 w-4 text-muted-foreground" />
-                  )}
+                  <div className="absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                  <Mail className="w-5 h-5 mr-2 relative z-10" />
+                  <span className="relative z-10">{isLoading ? "Signing in..." : "Sign in with Email"}</span>
                 </Button>
+              </form>
+
+              <div className="relative my-8">
+                <div className="absolute inset-0 flex items-center">
+                  <Separator className="w-full bg-gradient-to-r from-transparent via-border/50 to-transparent" />
+                </div>
+                <div className="relative flex justify-center text-sm uppercase tracking-wider">
+                  <span className="bg-gradient-to-r from-card/90 to-card/90 px-4 py-1 text-muted-foreground font-medium rounded-full">Or continue with</span>
+                </div>
+              </div>
+
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full h-12 text-base border-2 border-border/30 hover:border-primary/30 bg-gradient-to-r from-background/50 to-background/30 hover:from-muted/20 hover:to-muted/10 rounded-xl shadow-sm hover:shadow-md transition-all duration-300 hover:scale-[1.02] group relative overflow-hidden"
+                onClick={handleGoogleLogin}
+                disabled={isGoogleLoading}
+              >
+                <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-accent/5 opacity-0 group-hover:opacity-100 transition-opacity duration-300" />
+                <svg className="w-5 h-5 mr-3 flex-shrink-0 relative z-10" viewBox="0 0 24 24">
+                  <path
+                    fill="#4285F4"
+                    d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
+                  />
+                  <path
+                    fill="#34A853"
+                    d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
+                  />
+                  <path
+                    fill="#FBBC05"
+                    d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
+                  />
+                  <path
+                    fill="#EA4335"
+                    d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
+                  />
+                </svg>
+                <span className="relative z-10 font-semibold">{isGoogleLoading ? "Signing in..." : "Continue with Google"}</span>
+              </Button>
+
+              <div className="mt-8 text-center space-y-4">
+                <Link href="/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors block font-medium hover:underline underline-offset-4">
+                  Forgot your password?
+                </Link>
+                <div className="text-sm text-muted-foreground">
+                  Don't have an account?{" "}
+                  <Link href="/register" className="text-primary hover:text-primary/80 transition-colors font-semibold hover:underline underline-offset-4">
+                    Sign up
+                  </Link>
+                </div>
               </div>
             </div>
-
-            <Button type="submit" className="w-full h-11 sm:h-12 bg-primary hover:bg-primary/90 text-sm sm:text-base" disabled={isLoading}>
-              <Mail className="w-4 h-4 mr-2" />
-              {isLoading ? "Signing in..." : "Sign in with Email"}
-            </Button>
-          </form>
-
-          <div className="relative my-4 sm:my-6">
-            <div className="absolute inset-0 flex items-center">
-              <Separator className="w-full" />
-            </div>
-            <div className="relative flex justify-center text-xs uppercase">
-              <span className="bg-background px-2 text-muted-foreground">Or continue with</span>
-            </div>
           </div>
 
-          <Button
-            type="button"
-            variant="outline"
-            className="w-full h-11 sm:h-12 text-sm sm:text-base"
-            onClick={handleGoogleLogin}
-            disabled={isGoogleLoading}
-          >
-            <svg className="w-4 h-4 mr-2 flex-shrink-0" viewBox="0 0 24 24">
-              <path
-                fill="currentColor"
-                d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z"
-              />
-              <path
-                fill="currentColor"
-                d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.07H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.93l2.85-2.22.81-.62z"
-              />
-              <path
-                fill="currentColor"
-                d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.07l3.66 2.84c.87-2.6 3.3-4.53 6.16-4.53z"
-              />
-            </svg>
-            <span className="truncate">{isGoogleLoading ? "Signing in..." : "Continue with Google"}</span>
-          </Button>
-
-          <div className="mt-4 sm:mt-6 text-center space-y-2">
-            <Link href="/forgot-password" className="text-xs sm:text-sm text-primary hover:text-primary/80 transition-colors block">
-              Forgot your password?
-            </Link>
-            <div className="text-xs sm:text-sm text-muted-foreground">
-              Don't have an account?{" "}
-              <Link href="/register" className="text-primary hover:text-primary/80 transition-colors">
-                Sign up
-              </Link>
+          {/* Right Column - Image */}
+          <div className="hidden lg:flex bg-gradient-to-br from-muted/20 to-muted/10 relative">
+            <div className="absolute inset-0 bg-gradient-to-br from-primary/5 to-accent/5" />
+            <div className="relative w-full h-full flex items-center justify-center p-8">
+              <div className="relative w-full h-full max-w-sm">
+                <Image
+                  src="/agronomist.png"
+                  alt="Agronomist working in field"
+                  fill
+                  className="object-contain"
+                  priority
+                />
+              </div>
             </div>
           </div>
-        </CardContent>
+        </div>
       </Card>
     </div>
   )

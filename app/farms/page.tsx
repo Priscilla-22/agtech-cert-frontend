@@ -52,16 +52,16 @@ import {
 
 interface Farm {
   id: number
-  name: string
+  farmName: string
   farmerId: number
   farmerName?: string
   location: string
-  size: number
+  totalArea: string | number
   cropTypes: string[]
   certificationStatus: string
   lastInspection?: string
-  registrationDate: string
-  status: string
+  organicSince: string
+  status?: string
   coordinates?: {
     latitude: number
     longitude: number
@@ -110,11 +110,11 @@ function FarmsContent() {
   // Filter farms based on current filters
   const filteredFarms = farms.filter(farm => {
     const matchesSearch = !searchTerm ||
-      farm.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      farm.farmName.toLowerCase().includes(searchTerm.toLowerCase()) ||
       farm.location.toLowerCase().includes(searchTerm.toLowerCase()) ||
       (farm.farmerName && farm.farmerName.toLowerCase().includes(searchTerm.toLowerCase()))
 
-    const matchesStatus = statusFilter === "all" || farm.status === statusFilter
+    const matchesStatus = statusFilter === "all" || (farm.status || 'active') === statusFilter
     const matchesCertification = certificationFilter === "all" || farm.certificationStatus === certificationFilter
 
     return matchesSearch && matchesStatus && matchesCertification
@@ -230,7 +230,7 @@ function FarmsContent() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {farms.filter(farm => farm.status === 'active').length}
+                      {farms.filter(farm => farm.status === 'active' || !farm.status).length}
                     </div>
                   </CardContent>
                 </Card>
@@ -252,7 +252,7 @@ function FarmsContent() {
                   </CardHeader>
                   <CardContent>
                     <div className="text-2xl font-bold">
-                      {farms.reduce((total, farm) => total + (farm.size || 0), 0).toFixed(1)} ha
+                      {farms.reduce((total, farm) => total + (parseFloat(farm.totalArea?.toString() || '0') || 0), 0).toFixed(1)} ha
                     </div>
                   </CardContent>
                 </Card>
@@ -338,7 +338,7 @@ function FarmsContent() {
                             <CardHeader className="pb-3">
                               <div className="flex items-start justify-between">
                                 <div className="space-y-1">
-                                  <CardTitle className="text-lg">{farm.name}</CardTitle>
+                                  <CardTitle className="text-lg">{farm.farmName}</CardTitle>
                                   <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                     <User className="w-4 h-4" />
                                     {farm.farmerName || `Farmer #${farm.farmerId}`}
@@ -377,7 +377,7 @@ function FarmsContent() {
                                         <AlertDialogHeader>
                                           <AlertDialogTitle>Delete Farm</AlertDialogTitle>
                                           <AlertDialogDescription>
-                                            Are you sure you want to delete "{farm.name}"? This action
+                                            Are you sure you want to delete "{farm.farmName}"? This action
                                             cannot be undone and will remove all associated data.
                                           </AlertDialogDescription>
                                         </AlertDialogHeader>
@@ -411,7 +411,7 @@ function FarmsContent() {
                                     <Building2 className="w-4 h-4 text-muted-foreground" />
                                     <span className="text-muted-foreground">Size</span>
                                   </div>
-                                  <p className="text-sm font-medium">{farm.size} ha</p>
+                                  <p className="text-sm font-medium">{farm.totalArea} ha</p>
                                 </div>
                               </div>
 
@@ -437,8 +437,8 @@ function FarmsContent() {
                                 <div className="space-y-1">
                                   <span className="text-sm text-muted-foreground">Status</span>
                                   <div>
-                                    <Badge className={getStatusBadge(farm.status)}>
-                                      {farm.status}
+                                    <Badge className={getStatusBadge(farm.status || 'active')}>
+                                      {farm.status || 'active'}
                                     </Badge>
                                   </div>
                                 </div>
@@ -456,7 +456,7 @@ function FarmsContent() {
                               <div className="pt-2 border-t">
                                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                                   <Calendar className="w-4 h-4" />
-                                  Registered {new Date(farm.registrationDate).toLocaleDateString()}
+                                  Organic since {new Date(farm.organicSince).toLocaleDateString()}
                                 </div>
                               </div>
                             </CardContent>

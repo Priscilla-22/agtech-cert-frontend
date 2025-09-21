@@ -30,14 +30,14 @@ export function CertificatePreview({ certificate }: CertificatePreviewProps) {
             <User className="h-5 w-5 text-primary" />
             <div>
               <p className="text-sm text-muted-foreground">Farmer</p>
-              <p className="font-semibold">{certificate.farmerName}</p>
+              <p className="font-semibold">{certificate.farmer?.name || certificate.farmerName || 'N/A'}</p>
             </div>
           </div>
           <div className="flex items-center gap-3">
             <Building2 className="h-5 w-5 text-primary" />
             <div>
               <p className="text-sm text-muted-foreground">Farm Operation</p>
-              <p className="font-semibold">{certificate.farmName}</p>
+              <p className="font-semibold">{certificate.farm?.farmName || certificate.farmName || 'N/A'}</p>
             </div>
           </div>
         </div>
@@ -66,11 +66,15 @@ export function CertificatePreview({ certificate }: CertificatePreviewProps) {
       <div className="border-t border-primary/20 pt-6">
         <h3 className="font-semibold mb-3">Certified Organic Products:</h3>
         <div className="flex flex-wrap gap-2">
-          {certificate.cropTypes.map((crop) => (
-            <Badge key={crop} variant="secondary" className="bg-primary/10 text-primary">
-              {crop}
-            </Badge>
-          ))}
+          {certificate.cropTypes && Array.isArray(certificate.cropTypes) && certificate.cropTypes.length > 0 ? (
+            certificate.cropTypes.map((crop) => (
+              <Badge key={crop} variant="secondary" className="bg-primary/10 text-primary">
+                {crop}
+              </Badge>
+            ))
+          ) : (
+            <p className="text-muted-foreground">No specific crop types certified</p>
+          )}
         </div>
       </div>
 

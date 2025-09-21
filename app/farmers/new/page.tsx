@@ -345,23 +345,13 @@ function NewFarmerContent() {
               <div className="grid gap-6 md:grid-cols-2">
                 <div className="space-y-3">
                   <Label htmlFor="county" className="font-medium">County *</Label>
-                  <Select
+                  <Input
+                    id="county"
                     value={formData.county}
-                    onValueChange={(value) => setFormData({ ...formData, county: value })}
-                  >
-                    <SelectTrigger className={errors.county ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}>
-                      <SelectValue placeholder="Select county" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="nakuru">Nakuru County</SelectItem>
-                      <SelectItem value="kiambu">Kiambu County</SelectItem>
-                      <SelectItem value="uasin-gishu">Uasin Gishu County</SelectItem>
-                      <SelectItem value="trans-nzoia">Trans Nzoia County</SelectItem>
-                      <SelectItem value="bungoma">Bungoma County</SelectItem>
-                      <SelectItem value="meru">Meru County</SelectItem>
-                      <SelectItem value="nyeri">Nyeri County</SelectItem>
-                    </SelectContent>
-                  </Select>
+                    onChange={(e) => setFormData({ ...formData, county: e.target.value })}
+                    placeholder="Enter county"
+                    className={errors.county ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}
+                  />
                   {errors.county && <p className="text-sm text-red-500">{errors.county}</p>}
                 </div>
 
@@ -525,7 +515,7 @@ function NewFarmerContent() {
                 <Label className="font-medium">Primary Crops Grown *</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-green-100 rounded-lg bg-green-50/30">
                   {['Maize', 'Beans', 'Coffee', 'Tea', 'Bananas', 'Tomatoes', 'Potatoes', 'Onions', 'Cabbages', 'Carrots', 'Spinach', 'Kale'].map((crop) => (
-                    <div key={crop} className="flex items-center space-x-3 p-2 rounded hover:bg-green-100/50">
+                    <div key={crop} className="flex items-center space-x-3 p-2 rounded">
                       <Checkbox
                         id={crop}
                         checked={formData.primaryCrops.includes(crop)}
@@ -663,7 +653,7 @@ function NewFarmerContent() {
                 <Label className="font-medium">Water Sources Available</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-green-100 rounded-lg bg-green-50/30">
                   {['River', 'Borehole', 'Well', 'Spring', 'Rainwater', 'Municipal', 'Dam/Pond'].map((source) => (
-                    <div key={source} className="flex items-center space-x-3 p-2 rounded hover:bg-green-100/50">
+                    <div key={source} className="flex items-center space-x-3 p-2 rounded">
                       <Checkbox
                         id={source}
                         checked={formData.waterSources.includes(source)}
@@ -716,15 +706,15 @@ function NewFarmerContent() {
                   onValueChange={(value) => setFormData({ ...formData, previousCertification: value })}
                   className={errors.previousCertification ? "border border-red-500 rounded-lg p-4" : "border border-green-200 rounded-lg p-4 bg-green-50/30"}
                 >
-                  <div className="flex items-center space-x-3 p-2 rounded hover:bg-green-100/50">
+                  <div className="flex items-center space-x-3 p-2 rounded">
                     <RadioGroupItem value="yes" id="cert-yes" className="border-green-400 text-green-600" />
                     <Label htmlFor="cert-yes" className="cursor-pointer">Yes, previously certified</Label>
                   </div>
-                  <div className="flex items-center space-x-3 p-2 rounded hover:bg-green-100/50">
+                  <div className="flex items-center space-x-3 p-2 rounded">
                     <RadioGroupItem value="transitioning" id="cert-transitioning" className="border-green-400 text-green-600" />
                     <Label htmlFor="cert-transitioning" className="cursor-pointer">Currently in transition period</Label>
                   </div>
-                  <div className="flex items-center space-x-3 p-2 rounded hover:bg-green-100/50">
+                  <div className="flex items-center space-x-3 p-2 rounded">
                     <RadioGroupItem value="no" id="cert-no" className="border-green-400 text-green-600" />
                     <Label htmlFor="cert-no" className="cursor-pointer">No, new to organic farming</Label>
                   </div>
@@ -883,7 +873,7 @@ function NewFarmerContent() {
           <div className="max-w-5xl mx-auto space-y-6 pb-96">
             {/* Header */}
             <div className="flex items-center gap-4">
-              <Button variant="ghost" size="sm" asChild>
+              <Button variant="ghost" size="sm" asChild className="hover:bg-transparent hover:text-current">
                 <Link href="/farmers">
                   <ArrowLeft className="mr-2 h-4 w-4" />
                   Back to Farmers
@@ -928,7 +918,7 @@ function NewFarmerContent() {
                             w-12 h-12 rounded-full border-2 flex items-center justify-center transition-colors mb-2
                             ${isCompleted ? 'bg-primary border-primary text-primary-foreground' :
                               isCurrent ? 'border-primary text-primary bg-primary/10' :
-                              isClickable ? 'border-muted-foreground hover:border-primary' : 'border-muted text-muted-foreground'}
+                              isClickable ? 'border-muted-foreground' : 'border-muted text-muted-foreground'}
                             ${isClickable ? 'cursor-pointer' : 'cursor-not-allowed'}
                           `}
                         >
@@ -961,6 +951,7 @@ function NewFarmerContent() {
                       variant="outline"
                       onClick={handleBack}
                       disabled={currentStep === 1}
+                      className="hover:bg-transparent hover:text-current"
                     >
                       <ArrowLeft className="mr-2 h-4 w-4" />
                       Previous
@@ -970,12 +961,13 @@ function NewFarmerContent() {
                       <Button
                         type="button"
                         onClick={handleNext}
+                        className="hover:bg-primary hover:text-primary-foreground"
                       >
                         Next Step
                         <ArrowRight className="ml-2 h-4 w-4" />
                       </Button>
                     ) : (
-                      <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isSubmitting}>
+                      <Button type="submit" className="bg-primary hover:bg-primary hover:text-primary-foreground" disabled={isSubmitting}>
                         <Save className="mr-2 h-4 w-4" />
                         {isSubmitting ? "Registering..." : "Register Farmer"}
                       </Button>

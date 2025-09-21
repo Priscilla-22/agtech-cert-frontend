@@ -29,16 +29,18 @@ export default function NewInspectionPage() {
   })
   const [farmers, setFarmers] = useState<any[]>([])
   const [farms, setFarms] = useState<any[]>([])
+  const [inspectors, setInspectors] = useState<any[]>([])
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
-  // Fetch farmers and farms data
+  // Fetch farmers, farms, and inspectors data
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [farmersRes, farmsRes] = await Promise.all([
+        const [farmersRes, farmsRes, inspectorsRes] = await Promise.all([
           fetch('/api/farmers'),
-          fetch('/api/farms')
+          fetch('/api/farms'),
+          fetch('/api/inspectors')
         ])
 
         if (farmersRes.ok) {
@@ -51,6 +53,12 @@ export default function NewInspectionPage() {
           const farmsData = await farmsRes.json()
           // Handle both direct array and {data: []} format
           setFarms(farmsData.data || farmsData)
+        }
+
+        if (inspectorsRes.ok) {
+          const inspectorsData = await inspectorsRes.json()
+          // Handle both direct array and {data: []} format
+          setInspectors(inspectorsData.data || inspectorsData)
         }
       } catch (error) {
         console.error('Error fetching data:', error)
@@ -246,10 +254,19 @@ export default function NewInspectionPage() {
                         <SelectValue placeholder="Select inspector" />
                       </SelectTrigger>
                       <SelectContent>
-                        <SelectItem value="Sarah Johnson">Sarah Johnson</SelectItem>
-                        <SelectItem value="Mike Wilson">Mike Wilson</SelectItem>
-                        <SelectItem value="Lisa Brown">Lisa Brown</SelectItem>
-                        <SelectItem value="David Martinez">David Martinez</SelectItem>
+                        {loading ? (
+                          <SelectItem value="loading" disabled>Loading inspectors...</SelectItem>
+                        ) : inspectors.length === 0 ? (
+                          <SelectItem value="no-inspectors" disabled>No active inspectors available</SelectItem>
+                        ) : (
+                          inspectors
+                            .filter(inspector => inspector.status === 'active')
+                            .map((inspector) => (
+                              <SelectItem key={inspector.id} value={inspector.name}>
+                                {inspector.name} - {inspector.specialization}
+                              </SelectItem>
+                            ))
+                        )}
                       </SelectContent>
                     </Select>
                   </div>

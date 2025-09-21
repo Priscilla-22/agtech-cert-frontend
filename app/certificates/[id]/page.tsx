@@ -95,7 +95,17 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
               <p className="text-muted-foreground">{certificate.certificateNumber}</p>
             </div>
             <div className="flex gap-2">
-              <Button variant="outline">
+              <Button
+                variant="outline"
+                onClick={() => {
+                  // Create a download link for the PDF
+                  const link = document.createElement('a')
+                  link.href = `http://localhost:3002/api/certificates/${certificate.id}/pdf`
+                  link.download = `certificate-${certificate.certificateNumber}.pdf`
+                  link.target = '_blank'
+                  link.click()
+                }}
+              >
                 <Download className="mr-2 h-4 w-4" />
                 Download PDF
               </Button>
@@ -128,14 +138,14 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
                   <div className="flex items-center gap-3">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">{certificate.farmerName}</p>
+                      <p className="font-medium">{certificate.farmer?.name || certificate.farmerName || 'N/A'}</p>
                       <p className="text-xs text-muted-foreground">Farmer</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">{certificate.farmName}</p>
+                      <p className="font-medium">{certificate.farm?.farmName || certificate.farmName || 'N/A'}</p>
                       <p className="text-xs text-muted-foreground">Farm</p>
                     </div>
                   </div>
@@ -167,11 +177,15 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
                 </CardHeader>
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
-                    {certificate.cropTypes.map((crop) => (
-                      <Badge key={crop} variant="secondary">
-                        {crop}
-                      </Badge>
-                    ))}
+                    {certificate.cropTypes && Array.isArray(certificate.cropTypes) && certificate.cropTypes.length > 0 ? (
+                      certificate.cropTypes.map((crop) => (
+                        <Badge key={crop} variant="secondary">
+                          {crop}
+                        </Badge>
+                      ))
+                    ) : (
+                      <p className="text-muted-foreground">No specific crop types certified</p>
+                    )}
                   </div>
                 </CardContent>
               </Card>

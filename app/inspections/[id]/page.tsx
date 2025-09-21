@@ -197,22 +197,42 @@ export default function InspectionDetailPage({ params }: InspectionDetailPagePro
                           </Badge>
                         </div>
                         <div className="space-y-2">
-                          <div className="flex justify-between text-sm">
-                            <span>Organic Practices</span>
-                            <span className="font-medium">95/100</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Documentation</span>
-                            <span className="font-medium">88/100</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Soil Management</span>
-                            <span className="font-medium">92/100</span>
-                          </div>
-                          <div className="flex justify-between text-sm">
-                            <span>Pest Control</span>
-                            <span className="font-medium">94/100</span>
-                          </div>
+                          {inspection.checklist ? (
+                            <>
+                              <div className="flex justify-between text-sm">
+                                <span>Organic Practices</span>
+                                <span className="font-medium">
+                                  {inspection.checklist.filter(item =>
+                                    ['syntheticInputs', 'organicSeed'].includes(item.id) && item.answer === true
+                                  ).length * 50}/100
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>Documentation</span>
+                                <span className="font-medium">
+                                  {inspection.checklist.filter(item =>
+                                    item.id === 'recordKeeping' && item.answer === true
+                                  ).length * 100}/100
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>Soil Management</span>
+                                <span className="font-medium">
+                                  {inspection.checklist.filter(item =>
+                                    ['bufferZones', 'compostManagement'].includes(item.id) && item.answer === true
+                                  ).length * 50}/100
+                                </span>
+                              </div>
+                              <div className="flex justify-between text-sm">
+                                <span>Overall Compliance</span>
+                                <span className="font-medium">{inspection.score}/100</span>
+                              </div>
+                            </>
+                          ) : (
+                            <div className="text-center text-sm text-muted-foreground py-4">
+                              Checklist not yet completed
+                            </div>
+                          )}
                         </div>
                       </>
                     ) : (

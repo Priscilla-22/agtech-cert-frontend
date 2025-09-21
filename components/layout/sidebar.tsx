@@ -13,8 +13,8 @@ const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: Home },
   { name: "Farmers", href: "/farmers", icon: Users },
   { name: "Farms", href: "/farms", icon: Building2 },
-  { name: "Inspections", href: "/inspections", icon: ClipboardCheck },
   { name: "Inspectors", href: "/inspectors", icon: UserCheck },
+  { name: "Inspections", href: "/inspections", icon: ClipboardCheck },
   { name: "Certificates", href: "/certificates", icon: Award },
 ]
 

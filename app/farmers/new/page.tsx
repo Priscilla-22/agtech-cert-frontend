@@ -251,7 +251,7 @@ function NewFarmerContent() {
                     value={formData.name}
                     onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                     placeholder="John Doe Mwangi"
-                    className={errors.name ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}
+                    className={errors.name ? "border-red-500 border-2" : ""}
                   />
                   {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
                 </div>
@@ -263,7 +263,7 @@ function NewFarmerContent() {
                     value={formData.idNumber}
                     onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
                     placeholder="12345678"
-                    className={errors.idNumber ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}
+                    className={errors.idNumber ? "border-red-500 border-2" : ""}
                   />
                   {errors.idNumber && <p className="text-sm text-red-500">{errors.idNumber}</p>}
                 </div>
@@ -278,7 +278,7 @@ function NewFarmerContent() {
                     value={formData.email}
                     onChange={(e) => setFormData({ ...formData, email: e.target.value })}
                     placeholder="farmer@example.com"
-                    className={errors.email ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}
+                    className={errors.email ? "border-red-500 border-2" : ""}
                   />
                   {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
                 </div>

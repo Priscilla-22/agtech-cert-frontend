@@ -73,10 +73,6 @@ function EditFarmContent() {
     size: "",
     cultivatedSize: "",
     soilType: "",
-    coordinates: {
-      latitude: "",
-      longitude: "",
-    },
     cropTypes: [] as string[],
     irrigationSystem: "",
     landTenure: "",
@@ -114,10 +110,6 @@ function EditFarmContent() {
           size: farm.size?.toString() || "",
           cultivatedSize: farm.cultivatedSize?.toString() || "",
           soilType: farm.soilType || "",
-          coordinates: {
-            latitude: farm.coordinates?.latitude?.toString() || "",
-            longitude: farm.coordinates?.longitude?.toString() || "",
-          },
           cropTypes: farm.cropTypes || [],
           irrigationSystem: farm.irrigationSystem || "",
           landTenure: farm.landTenure || "",
@@ -246,10 +238,6 @@ function EditFarmContent() {
         farmerId: parseInt(formData.farmerId),
         size: parseFloat(formData.size),
         cultivatedSize: formData.cultivatedSize ? parseFloat(formData.cultivatedSize) : undefined,
-        coordinates: {
-          latitude: formData.coordinates.latitude ? parseFloat(formData.coordinates.latitude) : null,
-          longitude: formData.coordinates.longitude ? parseFloat(formData.coordinates.longitude) : null,
-        },
         cropTypes: selectedCrops,
       }
 
@@ -436,30 +424,6 @@ function EditFarmContent() {
                         value={formData.village}
                         onChange={handleInputChange}
                         placeholder="Village"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="coordinates.latitude">Latitude</Label>
-                      <Input
-                        id="coordinates.latitude"
-                        name="coordinates.latitude"
-                        type="number"
-                        step="any"
-                        value={formData.coordinates.latitude}
-                        onChange={handleInputChange}
-                        placeholder="e.g., -1.2921"
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="coordinates.longitude">Longitude</Label>
-                      <Input
-                        id="coordinates.longitude"
-                        name="coordinates.longitude"
-                        type="number"
-                        step="any"
-                        value={formData.coordinates.longitude}
-                        onChange={handleInputChange}
-                        placeholder="e.g., 36.8219"
                       />
                     </div>
                   </CardContent>

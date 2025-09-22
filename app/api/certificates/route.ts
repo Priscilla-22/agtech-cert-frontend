@@ -1,17 +1,11 @@
-import { type NextRequest, NextResponse } from "next/server"
-
-const BACKEND_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3002/api'
+import { NextRequest, NextResponse } from "next/server"
+import { getList, post } from "@/lib/utils/http"
 
 export async function GET() {
   try {
-    const response = await fetch(`${BACKEND_URL}/certificates`)
-    if (!response.ok) {
-      throw new Error(`Backend responded with ${response.status}`)
-    }
-    const certificates = await response.json()
+    const certificates = await getList('/certificates')
     return NextResponse.json(certificates)
-  } catch (error) {
-    console.error('Error fetching certificates:', error)
+  } catch {
     return NextResponse.json({ error: "Failed to fetch certificates" }, { status: 500 })
   }
 }
@@ -19,23 +13,14 @@ export async function GET() {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json()
+    const certificate = await post('/certificates', body)
 
-    const response = await fetch(`${BACKEND_URL}/certificates`, {
-      method: 'POST',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      throw new Error(`Backend responded with ${response.status}`)
+    if (!certificate) {
+      return NextResponse.json({ error: "Failed to create certificate" }, { status: 400 })
     }
 
-    const certificate = await response.json()
     return NextResponse.json(certificate, { status: 201 })
-  } catch (error) {
-    console.error('Error creating certificate:', error)
+  } catch {
     return NextResponse.json({ error: "Failed to create certificate" }, { status: 500 })
   }
 }

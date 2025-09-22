@@ -1,7 +1,4 @@
 "use client"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { AgriCard, AgriCardContent, AgriCardDescription, AgriCardHeader, AgriCardTitle } from "@/components/ui/agri-card"
-import { StatsCard } from "@/components/ui/stats-card"
 import { Badge } from "@/components/ui/badge"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Navbar } from "@/components/layout/navbar"
@@ -11,60 +8,50 @@ import {
   ClipboardCheck,
   Award,
   TrendingUp,
-  TrendingDown,
   Calendar,
   AlertTriangle,
-  CheckCircle2,
   Filter,
-  X,
 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { Footer } from "@/components/layout/footer"
-import { api } from "@/lib/api-client"
+import { generateDashboardStats } from "@/lib/services/dashboard-service"
+import { fetchAllFarmers } from "@/lib/services/farmer-service"
+import { fetchAllInspections } from "@/lib/services/inspection-service"
+import { fetchAllCertificates } from "@/lib/services/certificate-service"
 import {
-  Bar,
-  BarChart,
-  Line,
-  LineChart,
-  Pie,
-  PieChart,
-  Cell,
-  XAxis,
-  YAxis,
-  CartesianGrid,
-  Legend,
-  ResponsiveContainer,
-} from "recharts"
-import { ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+  SimpleDashboardStats,
+  MonthlyData,
+  CertificationData,
+  ActivityItem,
+  DateRange,
+  DashboardFilters,
+  StatItem,
+  DashboardInspection,
+  DashboardCertificate
+} from "@/lib/types/dashboard"
+import { Farmer } from "@/lib/types/farmer"
 import { EnhancedChart } from "@/components/ui/enhanced-chart"
 import { MaterialChart } from "@/components/ui/material-chart"
-import { MaterialDatePicker } from "@/components/ui/material-date-picker"
 import { useEffect, useState } from "react"
-import {
-  Card as MTCard,
-  CardBody as MTCardBody,
-  CardHeader as MTCardHeader,
-  Typography,
-  Input,
-  Button,
-} from "@material-tailwind/react"
+import { RecentActivity } from "@/components/dashboard/recent-activity"
+import { StatsOverview } from "@/components/dashboard/stats-overview"
+import { DashboardFiltersComponent } from "@/components/dashboard/dashboard-filters"
 
 function DashboardContent() {
   const { user } = useAuth()
   const { toast } = useToast()
 
-  // State for dashboard data
-  const [dashboardStats, setDashboardStats] = useState<any>(null)
-  const [farmers, setFarmers] = useState<any[]>([])
-  const [inspections, setInspections] = useState<any[]>([])
-  const [certificates, setCertificates] = useState<any[]>([])
+  const [dashboardStats, setDashboardStats] = useState<SimpleDashboardStats | null>(null)
+  const [farmers, setFarmers] = useState<Farmer[]>([])
+  const [inspections, setInspections] = useState<DashboardInspection[]>([])
+  const [certificates, setCertificates] = useState<DashboardCertificate[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
   // Global filter state
   const [showFilters, setShowFilters] = useState<boolean>(false)
-  const [dateRange, setDateRange] = useState<{from: Date | undefined, to: Date | undefined}>({
+  const [dateRange, setDateRange] = useState<DateRange>({
     from: undefined,
     to: undefined
   })
@@ -72,60 +59,60 @@ function DashboardContent() {
   const [searchFilter, setSearchFilter] = useState<string>("")
   const [typeFilter, setTypeFilter] = useState<string>("all")
 
-  // Applied filters state (used for actual filtering)
-  const [appliedFilters, setAppliedFilters] = useState({
+  // filters
+  const [appliedFilters, setAppliedFilters] = useState<DashboardFilters>({
     dateRange: { from: undefined, to: undefined },
     statusFilter: "all",
     searchFilter: "",
     typeFilter: "all"
   })
 
-  // Fetch dashboard data
   useEffect(() => {
-    const fetchDashboardData = async () => {
+    async function loadDashboardData() {
       try {
         setLoading(true)
         setError(null)
 
-        // Fetch all required data from backend using API client
-        const [farmersData, inspectionsData, certificatesData] = await Promise.all([
-          api.farmers.getAll(),
-          api.inspections.getAll(),
-          api.certificates.getAll()
+        const [farmersData, inspectionsData, certificatesData, stats] = await Promise.all([
+          fetchAllFarmers(),
+          fetchAllInspections(),
+          fetchAllCertificates(),
+          generateDashboardStats()
         ])
 
-        // Handle both array and object response formats
-        setFarmers(Array.isArray(farmersData) ? farmersData : farmersData.data || [])
-        setInspections(Array.isArray(inspectionsData) ? inspectionsData : inspectionsData.data || [])
-        setCertificates(Array.isArray(certificatesData) ? certificatesData : certificatesData.data || [])
+        setFarmers(farmersData || [])
+        setInspections((inspectionsData || []).map((inspection: any) => ({
+          id: inspection.id,
+          status: inspection.status || 'pending',
+          scheduledDate: inspection.scheduledDate,
+          createdAt: inspection.createdAt,
+          updatedAt: inspection.updatedAt,
+          farmerName: inspection.farmerName
+        })))
+        setCertificates((certificatesData || []).map((cert: any) => ({
+          id: cert.id,
+          status: cert.status || 'active',
+          issueDate: cert.issueDate,
+          createdAt: cert.createdAt,
+          farmerName: cert.farmerName,
+          certificationType: cert.certificationType
+        })))
 
-        // Generate dashboard stats from real data
-        const farmersArray = Array.isArray(farmersData) ? farmersData : farmersData.data || []
-        const certificatesArray = Array.isArray(certificatesData) ? certificatesData : certificatesData.data || []
-        const inspectionsArray = Array.isArray(inspectionsData) ? inspectionsData : inspectionsData.data || []
-        
-        const totalFarmers = farmersArray.length
-        const activeCertificates = certificatesArray.filter((c: any) => c.status === 'active').length
-        const pendingInspections = inspectionsArray.filter((i: any) => i.status === 'pending').length
-        const completedInspections = inspectionsArray.filter((i: any) => i.status === 'completed').length
-
-        // Calculate revenue from real data (this should come from backend)
-        const monthlyRevenue = 0 // Will be populated with real data from backend
-
-        setDashboardStats({
-          totalFarmers,
-          activeCertificates,
-          pendingInspections,
-          monthlyRevenue,
-          completedInspections
-        })
+        if (stats && typeof stats === 'object' && 'totalFarmers' in stats) {
+          setDashboardStats(stats as SimpleDashboardStats)
+        } else {
+          setDashboardStats({
+            totalFarmers: farmersData?.length || 0,
+            activeCertificates: certificatesData?.filter((c: any) => c.status === 'active')?.length || 0,
+            pendingInspections: inspectionsData?.filter((i: any) => i.status === 'pending')?.length || 0,
+            monthlyRevenue: 0
+          })
+        }
 
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : 'Failed to fetch dashboard data'
         setError(errorMessage)
-        console.error('Dashboard data fetch error:', err)
 
-        // Show user-friendly toast notification
         toast({
           variant: "destructive",
           title: "Dashboard Loading Error",
@@ -136,34 +123,34 @@ function DashboardContent() {
       }
     }
 
-    fetchDashboardData()
+    loadDashboardData()
   }, [])
 
-  // Generate monthly data from real inspections and certificates
-  const generateMonthlyData = () => {
-    if (!inspections.length || !certificates.length) return []
+  function generateMonthlyData(): MonthlyData[] {
+    if (!inspections.length && !certificates.length) return []
 
-    const monthlyData = []
     const months = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec']
     const currentYear = new Date().getFullYear()
+    const monthlyData: MonthlyData[] = []
 
     for (let i = 0; i < 6; i++) {
-      const month = months[new Date().getMonth() - 5 + i] || months[new Date().getMonth() - 5 + i + 12]
-      const monthIndex = months.indexOf(month)
+      const currentMonth = new Date().getMonth()
+      const monthIndex = (currentMonth - 5 + i + 12) % 12
+      const month = months[monthIndex]
 
-      const monthInspections = inspections.filter((inspection: any) => {
-        const inspectionDate = new Date(inspection.scheduledDate)
+      const monthInspections = inspections.filter((inspection: DashboardInspection) => {
+        const inspectionDate = new Date(inspection.scheduledDate || inspection.createdAt || '')
         return inspectionDate.getMonth() === monthIndex && inspectionDate.getFullYear() === currentYear
       }).length
 
-      const monthCertificates = certificates.filter((cert: any) => {
-        const certDate = new Date(cert.issueDate)
+      const monthCertificates = certificates.filter((cert: DashboardCertificate) => {
+        const certDate = new Date(cert.issueDate || cert.createdAt || '')
         return certDate.getMonth() === monthIndex && certDate.getFullYear() === currentYear
       }).length
 
       monthlyData.push({
         month,
-        farmers: Math.floor(farmers.length / 6) + (i * 2), // Approximate distribution
+        farmers: Math.floor(farmers.length / 6) + (i * 2),
         inspections: monthInspections,
         certificates: monthCertificates
       })
@@ -172,61 +159,63 @@ function DashboardContent() {
     return monthlyData
   }
 
-  // Generate certification type distribution from real data
-  const generateCertificationData = () => {
-    if (!certificates.length) {
-      return []
-    }
+  function generateCertificationData(): CertificationData[] {
+    if (!certificates.length) return []
 
-    const typeCount = certificates.reduce((acc: any, cert: any) => {
+    const typeCount: Record<string, number> = {}
+    certificates.forEach((cert: DashboardCertificate) => {
       const type = cert.certificationType || 'Other'
-      acc[type] = (acc[type] || 0) + 1
-      return acc
-    }, {})
+      typeCount[type] = (typeCount[type] || 0) + 1
+    })
 
-    return Object.entries(typeCount).map(([name, value], index) => ({
+    const colors = ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6']
+    return Object.entries(typeCount).map(([name, value], index): CertificationData => ({
       name,
-      value: value as number,
-      color: ['#10b981', '#3b82f6', '#f59e0b', '#8b5cf6'][index % 4]
+      value,
+      color: colors[index % colors.length]
     }))
   }
 
-  // Generate recent activity from real data
-  const generateRecentActivity = () => {
-    const activity = []
+  function generateRecentActivity(): ActivityItem[] {
+    const activity: ActivityItem[] = []
 
-    // Add recent inspections
     const recentInspections = inspections
-      .sort((a: any, b: any) => new Date(b.updatedAt || b.scheduledDate).getTime() - new Date(a.updatedAt || a.scheduledDate).getTime())
+      .sort((a: DashboardInspection, b: DashboardInspection) => {
+        const dateA = new Date(a.updatedAt || a.scheduledDate || '').getTime()
+        const dateB = new Date(b.updatedAt || b.scheduledDate || '').getTime()
+        return dateB - dateA
+      })
       .slice(0, 2)
 
-    recentInspections.forEach((inspection: any) => {
+    recentInspections.forEach((inspection: DashboardInspection) => {
       activity.push({
         id: `inspection-${inspection.id}`,
-        type: 'inspection',
+        type: 'inspection' as const,
         title: `Inspection ${inspection.status}`,
-        farmer: inspection.farmerName || 'Unknown Farm',
-        time: new Date(inspection.updatedAt || inspection.scheduledDate).toLocaleString(),
-        status: inspection.status
+        farmer: inspection.farmerName || '-',
+        time: new Date(inspection.updatedAt || inspection.scheduledDate || '').toLocaleString(),
+        status: inspection.status as ActivityItem['status']
       })
     })
 
-    // Add recent certificates
     const recentCertificates = certificates
-      .sort((a: any, b: any) => new Date(b.issueDate).getTime() - new Date(a.issueDate).getTime())
+      .sort((a: DashboardCertificate, b: DashboardCertificate) => {
+        const dateA = new Date(a.issueDate).getTime()
+        const dateB = new Date(b.issueDate).getTime()
+        return dateB - dateA
+      })
       .slice(0, 2)
 
-    recentCertificates.forEach((cert: any) => {
+    recentCertificates.forEach((cert: DashboardCertificate) => {
       activity.push({
         id: `cert-${cert.id}`,
-        type: 'certificate',
+        type: 'certificate' as const,
         title: 'Certificate issued',
-        farmer: cert.farmerName || 'Unknown Farm',
+        farmer: cert.farmerName || '-',
         time: new Date(cert.issueDate).toLocaleString(),
-        status: 'success'
+        status: 'success' as const
       })
     })
-
 
     return activity.slice(0, 4)
   }
@@ -277,7 +266,7 @@ function DashboardContent() {
     )
   }
 
-  const stats = [
+  const stats: StatItem[] = [
     {
       title: "Total Farmers",
       value: dashboardStats?.totalFarmers?.toString() || "0",
@@ -304,29 +293,23 @@ function DashboardContent() {
     },
   ]
 
-  // Filter functions
-  const handleResetFilters = () => {
+  function handleResetFilters() {
     setDateRange({ from: undefined, to: undefined })
     setStatusFilter("all")
     setSearchFilter("")
     setTypeFilter("all")
   }
 
-  const handleApplyFilters = () => {
+  function handleApplyFilters() {
     setAppliedFilters({
       dateRange,
       statusFilter,
       searchFilter,
       typeFilter
     })
-
-    toast({
-      title: "Filters Applied",
-      description: "Your filters have been applied to the dashboard data.",
-    })
   }
 
-  const hasActiveFilters = () => {
+  function hasActiveFilters() {
     return dateRange.from ||
            statusFilter !== "all" ||
            searchFilter !== "" ||
@@ -399,138 +382,23 @@ function DashboardContent() {
                 </div>
               </div>
 
-              {/* Global Filter Section */}
-              {showFilters && (
-                <MTCard className="w-full border-2 border-blue-200 shadow-lg my-8">
-                  <MTCardHeader className="flex flex-row items-center justify-between px-8 py-6">
-                    <Typography variant="h6" color="blue-gray">
-                      Global Filters
-                    </Typography>
-                    <button
-                      onClick={() => setShowFilters(false)}
-                      className="text-gray-500 hover:text-gray-700 transition-colors"
-                    >
-                      <X className="w-5 h-5" />
-                    </button>
-                  </MTCardHeader>
-                  <MTCardBody className="px-8 py-6">
-                    <div className="grid gap-6 md:grid-cols-2 lg:grid-cols-4">
-                      <MaterialDatePicker
-                        value={dateRange}
-                        onChange={setDateRange}
-                        label="Date Range"
-                        className="w-full"
-                      />
+              <DashboardFiltersComponent
+                showFilters={showFilters}
+                setShowFilters={setShowFilters}
+                dateRange={dateRange}
+                setDateRange={setDateRange}
+                statusFilter={statusFilter}
+                setStatusFilter={setStatusFilter}
+                searchFilter={searchFilter}
+                setSearchFilter={setSearchFilter}
+                typeFilter={typeFilter}
+                setTypeFilter={setTypeFilter}
+                appliedFilters={appliedFilters}
+                onApplyFilters={handleApplyFilters}
+                onResetFilters={handleResetFilters}
+              />
 
-                      <div className="w-full">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                        <select
-                          className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          value={statusFilter}
-                          onChange={(e) => setStatusFilter(e.target.value)}
-                        >
-                          <option value="all">All Status</option>
-                          <option value="active">Active</option>
-                          <option value="pending">Pending</option>
-                          <option value="completed">Completed</option>
-                          <option value="expired">Expired</option>
-                        </select>
-                      </div>
-
-                      <div className="w-full">
-                        <label className="block text-sm font-medium text-gray-700 mb-1">Type</label>
-                        <select
-                          className="w-full p-2 border border-gray-300 rounded-md focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
-                          value={typeFilter}
-                          onChange={(e) => setTypeFilter(e.target.value)}
-                        >
-                          <option value="all">All Types</option>
-                          <option value="organic">Organic Crop</option>
-                          <option value="livestock">Organic Livestock</option>
-                          <option value="processing">Processing</option>
-                          <option value="wild">Wild Harvest</option>
-                        </select>
-                      </div>
-
-                      <div className="w-full">
-                        <Input
-                          label="Search"
-                          value={searchFilter}
-                          onChange={(e) => setSearchFilter(e.target.value)}
-                          placeholder="Search farmers, certificates..."
-                        />
-                      </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="mt-8 flex items-center justify-between">
-                      <div className="flex flex-wrap gap-2">
-                        {appliedFilters.dateRange.from && (
-                          <Badge className="text-xs flex items-center gap-1 bg-blue-100 text-blue-800">
-                            {`${appliedFilters.dateRange.from.toLocaleDateString()}${appliedFilters.dateRange.to ? ` - ${appliedFilters.dateRange.to.toLocaleDateString()}` : ''}`}
-                          </Badge>
-                        )}
-                        {appliedFilters.statusFilter !== "all" && (
-                          <Badge className="text-xs bg-green-100 text-green-800">
-                            Status: {appliedFilters.statusFilter}
-                          </Badge>
-                        )}
-                        {appliedFilters.typeFilter !== "all" && (
-                          <Badge className="text-xs bg-purple-100 text-purple-800">
-                            Type: {appliedFilters.typeFilter}
-                          </Badge>
-                        )}
-                        {appliedFilters.searchFilter && (
-                          <Badge className="text-xs bg-yellow-100 text-yellow-800">
-                            Search: {appliedFilters.searchFilter}
-                          </Badge>
-                        )}
-                      </div>
-
-                      <div className="flex gap-3">
-                        <button
-                          onClick={handleResetFilters}
-                          className="px-4 py-2 text-sm font-medium text-gray-600 hover:text-gray-800 hover:bg-gray-100 rounded-md transition-colors"
-                        >
-                          Reset
-                        </button>
-                        <button
-                          onClick={handleApplyFilters}
-                          className="px-4 py-2 text-sm font-medium text-white bg-blue-600 hover:bg-blue-700 rounded-md transition-colors"
-                        >
-                          Apply Filters
-                        </button>
-                      </div>
-                    </div>
-                  </MTCardBody>
-                </MTCard>
-              )}
-
-              <div className="grid gap-6 sm:gap-8 grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 mt-8">
-                {stats.map((stat, index) => {
-                  const Icon = stat.icon
-                  const variants = ['default', 'default', 'default', 'default']
-                  const iconColors = ['text-blue-600', 'text-emerald-600', 'text-amber-600', 'text-purple-600']
-                  const variant = variants[index % variants.length]
-                  const iconColor = iconColors[index % iconColors.length]
-
-                  return (
-                    <StatsCard
-                      key={stat.title}
-                      title={stat.title}
-                      value={stat.value}
-                      icon={Icon}
-                      iconColor={iconColor}
-                      variant={variant as any}
-                      trend={{
-                        value: Math.floor(Math.random() * 20) + 5,
-                        label: "Growth",
-                        isPositive: Math.random() > 0.3
-                      }}
-                    />
-                  )
-                })}
-              </div>
+              <StatsOverview stats={stats} />
 
               <div className="grid gap-8 lg:grid-cols-2 mt-24">
                 <MaterialChart
@@ -579,50 +447,7 @@ function DashboardContent() {
                   className="lg:col-span-2"
                 />
 
-                <AgriCard variant="sustainable" interactive>
-                  <AgriCardHeader>
-                    <div className="flex items-center justify-between">
-                      <div className="space-y-1">
-                        <AgriCardTitle className="text-xl font-bold">Recent Activity</AgriCardTitle>
-                        <AgriCardDescription>Latest updates and notifications</AgriCardDescription>
-                      </div>
-                      <div className="w-3 h-3 rounded-full bg-muted-foreground" />
-                    </div>
-                  </AgriCardHeader>
-                  <AgriCardContent className="space-y-4 p-6 pt-0">
-                    {recentActivity.length > 0 ? (
-                      recentActivity.map((activity, index) => (
-                        <div key={activity.id} className="group/item flex items-start gap-4 p-4 rounded-xl bg-gradient-to-r from-muted/30 to-muted/10 border border-border/50 hover:from-muted/50 hover:to-muted/20 transition-all duration-300 hover:shadow-md hover:border-primary/20">
-                          <div className="flex-shrink-0 mt-0.5">
-                            <div className="relative">
-                              <div className="absolute inset-0 rounded-full bg-primary/10 blur group-hover/item:bg-primary/20 transition-colors duration-300" />
-                              <div className="relative w-8 h-8 rounded-full bg-gradient-to-br from-muted to-muted/50 flex items-center justify-center border border-border/50">
-                                {activity.status === "completed" && <CheckCircle2 className="w-4 h-4 text-emerald-600" />}
-                                {activity.status === "success" && <Award className="w-4 h-4 text-primary" />}
-                                {activity.status === "warning" && <AlertTriangle className="w-4 h-4 text-amber-500" />}
-                                {activity.status === "pending" && <Calendar className="w-4 h-4 text-blue-500" />}
-                              </div>
-                            </div>
-                          </div>
-                          <div className="flex-1 min-w-0 space-y-1">
-                            <p className="text-sm font-semibold text-foreground group-hover/item:text-primary transition-colors duration-300">{activity.title}</p>
-                            <p className="text-sm text-muted-foreground">{activity.farmer}</p>
-                            <p className="text-xs text-muted-foreground/80">{activity.time}</p>
-                          </div>
-                          <div className="opacity-0 group-hover/item:opacity-100 transition-opacity duration-300">
-                            <div className="w-2 h-2 rounded-full bg-gradient-to-r from-primary to-accent" />
-                          </div>
-                        </div>
-                      ))
-                    ) : (
-                      <div className="flex flex-col items-center justify-center py-8 text-center">
-                        <Calendar className="w-12 h-12 text-muted-foreground/50 mb-3" />
-                        <p className="text-sm font-medium text-muted-foreground">No recent activity</p>
-                        <p className="text-xs text-muted-foreground/70">Recent inspections and certificates will appear here</p>
-                      </div>
-                    )}
-                  </AgriCardContent>
-                </AgriCard>
+                <RecentActivity activities={recentActivity} />
               </div>
             </div>
           </main>

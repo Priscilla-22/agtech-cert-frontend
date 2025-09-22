@@ -2,7 +2,7 @@ import { Badge } from "@/components/ui/badge"
 import { cn } from "@/lib/utils"
 
 interface StatusBadgeProps {
-  status: "active" | "inactive" | "pending" | "approved" | "rejected" | "expired" | "draft" | "submitted" | "scheduled" | "in_progress" | "completed" | "failed" | "cancelled"
+  status: "active" | "inactive" | "pending" | "approved" | "rejected" | "expired" | "draft" | "submitted" | "scheduled" | "in_progress" | "completed" | "failed" | "cancelled" | "renewal_pending" | "revoked" | "suspended"
   className?: string
 }
 
@@ -21,6 +21,9 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     completed: "bg-green-50 text-green-700 hover:bg-green-50 border border-green-200",
     failed: "bg-red-50 text-red-700 hover:bg-red-50 border border-red-200",
     cancelled: "bg-gray-50 text-gray-700 hover:bg-gray-50 border border-gray-200",
+    renewal_pending: "bg-orange-50 text-orange-700 hover:bg-orange-50 border border-orange-200",
+    revoked: "bg-red-50 text-red-700 hover:bg-red-50 border border-red-200",
+    suspended: "bg-yellow-50 text-yellow-700 hover:bg-yellow-50 border border-yellow-200",
   }
 
   const statusLabels = {
@@ -36,7 +39,10 @@ export function StatusBadge({ status, className }: StatusBadgeProps) {
     in_progress: "In Progress",
     completed: "Completed",
     failed: "Failed",
-    cancelled: "Cancelled"
+    cancelled: "Cancelled",
+    renewal_pending: "Awaiting Renewal",
+    revoked: "Revoked",
+    suspended: "Suspended"
   }
 
   return (

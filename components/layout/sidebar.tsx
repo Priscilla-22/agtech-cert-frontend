@@ -157,27 +157,6 @@ export function Sidebar() {
         })}
       </nav>
 
-      <div className="p-4 border-t border-sidebar-border/30">
-        <div className={cn("flex items-center gap-4 p-3 rounded-xl bg-gradient-to-r from-sidebar-accent/20 to-sidebar-accent/10 border border-sidebar-border/20 hover:from-sidebar-accent/30 hover:to-sidebar-accent/20 transition-all duration-300 group cursor-pointer", !isExpanded && "justify-center p-2")}>
-          <div className="relative">
-            <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-accent/20 rounded-full blur group-hover:blur-md transition-all duration-300" />
-            <div className="relative w-10 h-10 bg-gradient-to-br from-primary to-accent rounded-full flex items-center justify-center border-2 border-primary/20 shadow-lg">
-              <span className="text-sm font-bold text-primary-foreground">
-                {user.email ? user.email.charAt(0).toUpperCase() : "U"}
-              </span>
-            </div>
-          </div>
-          {isExpanded && (
-            <div className="flex-1 min-w-0">
-              <p className="text-sm font-semibold text-sidebar-foreground truncate">{user.email?.split('@')[0] || 'User'}</p>
-              <div className="flex items-center gap-2">
-                <div className="w-2 h-2 rounded-full bg-green-500 animate-pulse" />
-                <p className="text-xs text-sidebar-foreground/70 truncate font-medium">Inspector</p>
-              </div>
-            </div>
-          )}
-        </div>
-      </div>
     </div>
     </>
   )

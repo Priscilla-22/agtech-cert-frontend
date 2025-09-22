@@ -16,10 +16,12 @@ import Link from "next/link"
 import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
+import { useToast } from "@/hooks/use-toast"
 
 export default function NewInspectionPage() {
   const { user, loading: authLoading } = useAuth()
   const router = useRouter()
+  const { toast } = useToast()
 
   const [formData, setFormData] = useState({
     farmId: "",
@@ -99,7 +101,11 @@ export default function NewInspectionPage() {
     e.preventDefault()
 
     if (!formData.farmId || !formData.inspectorName || !formData.scheduledDate) {
-      alert('Please fill in all required fields')
+      toast({
+        title: "Validation Error",
+        description: "Please fill in all required fields",
+        variant: "destructive"
+      })
       return
     }
 
@@ -126,19 +132,34 @@ export default function NewInspectionPage() {
       console.log('Response:', responseData)
 
       if (response.ok) {
-        alert("Inspection scheduled successfully!")
+        toast({
+          title: "Success",
+          description: "Inspection scheduled successfully!",
+        })
         router.push('/inspections')
       } else {
         console.error("Failed to schedule inspection:", responseData)
         if (responseData.errors && Array.isArray(responseData.errors)) {
-          alert(`Failed to schedule inspection:\n${responseData.errors.join('\n')}`)
+          toast({
+            title: "Failed to schedule inspection",
+            description: responseData.errors.join(', '),
+            variant: "destructive"
+          })
         } else {
-          alert(`Failed to schedule inspection: ${responseData.error || 'Unknown error'}`)
+          toast({
+            title: "Failed to schedule inspection",
+            description: responseData.error || 'Unknown error',
+            variant: "destructive"
+          })
         }
       }
     } catch (error) {
       console.error("Error scheduling inspection:", error)
-      alert('Error scheduling inspection. Please try again.')
+      toast({
+        title: "Error",
+        description: "Error scheduling inspection. Please try again.",
+        variant: "destructive"
+      })
     } finally {
       setSubmitting(false)
     }

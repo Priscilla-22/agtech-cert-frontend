@@ -46,10 +46,6 @@ interface Farm {
   irrigationSystem?: string
   landTenure?: string
   waterSources?: string[]
-  coordinates?: {
-    latitude: number
-    longitude: number
-  }
   description?: string
   registrationDate: string
   status: string
@@ -384,21 +380,6 @@ function FarmDetailsContent() {
                           )}
                         </div>
                       </div>
-                      {farm.coordinates && (
-                        <div className="space-y-4">
-                          <div className="space-y-2">
-                            <h4 className="font-medium">GPS Coordinates</h4>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Latitude:</span>
-                              <span className="text-sm font-medium">{farm.coordinates.latitude}</span>
-                            </div>
-                            <div className="flex justify-between">
-                              <span className="text-sm text-muted-foreground">Longitude:</span>
-                              <span className="text-sm font-medium">{farm.coordinates.longitude}</span>
-                            </div>
-                          </div>
-                        </div>
-                      )}
                     </CardContent>
                   </Card>
                 </TabsContent>

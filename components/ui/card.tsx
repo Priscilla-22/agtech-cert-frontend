@@ -23,7 +23,7 @@ function Card({ className, variant = 'default', interactive = false, ...props }:
         'relative overflow-hidden rounded-2xl flex flex-col transition-all duration-300 ease-out',
         variants[variant],
         interactive && 'hover:scale-[1.02] hover:-translate-y-1 cursor-pointer group',
-        'before:absolute before:inset-0 before:rounded-2xl before:p-[1px] before:bg-gradient-to-br before:from-primary/20 before:via-transparent before:to-accent/20 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300',
+        'before:absolute before:inset-0 before:rounded-2xl before:p-[1px] before:bg-gradient-to-br before:from-primary/5 before:via-transparent before:to-accent/5 before:opacity-0 hover:before:opacity-100 before:transition-opacity before:duration-300',
         className,
       )}
       {...props}
@@ -48,7 +48,7 @@ function CardTitle({ className, ...props }: React.ComponentProps<'div'>) {
   return (
     <div
       data-slot="card-title"
-      className={cn('text-lg font-bold leading-tight tracking-tight text-foreground group-hover:text-primary transition-colors duration-300', className)}
+      className={cn('text-lg font-bold leading-tight tracking-tight text-foreground transition-colors duration-300', className)}
       {...props}
     />
   )

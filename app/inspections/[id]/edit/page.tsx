@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
-import { ArrowLeft, Save, CheckCircle, XCircle, AlertTriangle, Calculator, FileText, ClipboardCheck } from "lucide-react"
+import { ArrowLeft, Save, CheckCircle, XCircle, AlertTriangle, Calculator, FileText, ClipboardCheck, Award } from "lucide-react"
 import Link from "next/link"
 import { notFound } from "next/navigation"
 import { useEffect, useState } from "react"
@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useToast } from "@/hooks/use-toast"
+import { approveInspection } from "@/lib/services/inspection-service"
 
 interface EditInspectionPageProps {
   params: { id: string }
@@ -79,6 +80,7 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
   const [inspection, setInspection] = useState<Inspection | null>(null)
   const [loading, setLoading] = useState(true)
   const [saving, setSaving] = useState(false)
+  const [approving, setApproving] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
   const [checklist, setChecklist] = useState<ChecklistItem[]>(
@@ -91,7 +93,8 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
   const [notes, setNotes] = useState('')
   const [violations, setViolations] = useState<string[]>([''])
   const [newViolation, setNewViolation] = useState('')
-  const [status, setStatus] = useState('draft')
+  const [status, setStatus] = useState('scheduled')
+  const [inspectorName, setInspectorName] = useState('')
 
   // Auth check
   useEffect(() => {
@@ -103,7 +106,7 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
   useEffect(() => {
     const fetchInspection = async () => {
       try {
-        const response = await fetch(`http://localhost:3002/api/inspections/${params.id}`)
+        const response = await fetch(`/api/inspections/${params.id}`)
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -128,7 +131,8 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
         setChecklist(existingChecklist)
         setNotes(data.notes || '')
         setViolations(data.violations?.length > 0 ? data.violations : [''])
-        setStatus(data.status || 'draft')
+        setStatus(data.status || 'scheduled')
+        setInspectorName(data.inspectorName || '')
 
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch inspection')
@@ -184,11 +188,11 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
         notes: notes.trim(),
         status: finalStatus,
         score,
-        complianceScore: score,
-        ...(finalStatus === 'approved' && { inspectionDate: new Date().toISOString().split('T')[0] })
+        inspectorName: inspectorName.trim() || 'Agronomist',
+        ...(finalStatus === 'completed' && { inspectionDate: new Date().toISOString().split('T')[0] })
       }
 
-      const response = await fetch(`http://localhost:3002/api/inspections/${params.id}`, {
+      const response = await fetch(`/api/inspections/${params.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json'
@@ -197,15 +201,26 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
       })
 
       if (!response.ok) {
-        throw new Error('Failed to update inspection')
+        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
+        throw new Error(`Failed to update inspection: ${errorData.error || response.statusText}`)
       }
 
-      toast({
-        title: "✅ Inspection Updated Successfully!",
-        description: `Inspection has been ${finalStatus === 'approved' ? 'approved' : finalStatus === 'rejected' ? 'rejected' : finalStatus === 'submitted' ? 'submitted for review' : 'saved as draft'} with a score of ${score}/100.`
-      })
+      const result = await response.json()
 
-      // Always redirect after saving to refresh the data
+      // Check if certificate was automatically generated
+      if (result.certificateGenerated && result.certificate) {
+        toast({
+          title: "🎉 Certificate Generated!",
+          description: `Inspection completed with score ${score}/100. Certificate #${result.certificate.certificateNumber} has been automatically generated and is ready for download!`
+        })
+      } else {
+        toast({
+          title: "Inspection Updated Successfully!",
+          description: `Inspection has been ${finalStatus === 'completed' ? 'completed' : finalStatus === 'failed' ? 'failed' : finalStatus === 'in_progress' ? 'marked as in progress' : 'scheduled'} with a score of ${score}/100.`
+        })
+      }
+
+
       setTimeout(() => {
         router.push('/inspections')
       }, 1500)
@@ -219,6 +234,39 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
       })
     } finally {
       setSaving(false)
+    }
+  }
+
+  const handleApproveForCertification = async () => {
+    setApproving(true)
+
+    try {
+      const result = await approveInspection(params.id)
+
+      if (result && result.success) {
+        toast({
+          title: "Inspection Approved for Certification!",
+          description: result.certificateId
+            ? `Certificate #${result.certificateId} has been generated and is ready for download.`
+            : "Inspection approved successfully. Certificate generation in progress."
+        })
+
+        setTimeout(() => {
+          router.push('/inspections')
+        }, 2000)
+      } else {
+        const errorMessage = result?.message || result?.error || 'Approval failed'
+        throw new Error(errorMessage)
+      }
+    } catch (error) {
+      console.error('Error approving inspection:', error)
+      toast({
+        variant: "destructive",
+        title: "Approval Failed",
+        description: error instanceof Error ? error.message : "Failed to approve inspection for certification. Please try again."
+      })
+    } finally {
+      setApproving(false)
     }
   }
 
@@ -272,6 +320,9 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
                 <div>
                   <h1 className="text-3xl font-bold tracking-tight">Score Inspection</h1>
                   <p className="text-muted-foreground">{inspection.farmName} - {inspection.farmerName}</p>
+                  {inspectorName && (
+                    <p className="text-sm text-blue-600">Inspector: {inspectorName}</p>
+                  )}
                 </div>
               </div>
 
@@ -292,6 +343,16 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
                       <Badge variant={isPassing ? "default" : "destructive"} className="text-sm">
                         {isPassing ? "Passing" : "Failing"} ({currentScore >= 80 ? "≥80% required" : "80% required"})
                       </Badge>
+                      {completionPercentage === 100 && (
+                        <Badge variant="outline" className="text-xs text-green-600 mt-1">
+                          Ready to submit as {status}
+                        </Badge>
+                      )}
+                      {status === 'submitted' && completionPercentage === 100 && (
+                        <Badge variant="outline" className="text-xs text-blue-600 mt-1">
+                          {isPassing ? "Eligible for certificate" : "Below 80% threshold"}
+                        </Badge>
+                      )}
                     </div>
                     <div className="text-right">
                       <div className="text-lg font-semibold">
@@ -383,6 +444,40 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
 
                 {/* Notes and Violations */}
                 <div className="space-y-6">
+                  {/* Inspector Selection */}
+                  <Card>
+                    <CardHeader>
+                      <CardTitle className="flex items-center gap-2">
+                        <ClipboardCheck className="w-5 h-5" />
+                        Inspector Information
+                      </CardTitle>
+                      <CardDescription>
+                        Select the inspector who conducted this inspection
+                      </CardDescription>
+                    </CardHeader>
+                    <CardContent>
+                      <div className="space-y-2">
+                        <Label htmlFor="inspector">Inspector Name</Label>
+                        <Select value={inspectorName} onValueChange={setInspectorName}>
+                          <SelectTrigger className="w-full">
+                            <SelectValue placeholder="Select inspector or enter custom name" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="Agronomist">Agronomist (Self)</SelectItem>
+                            <SelectItem value="John Smith">John Smith</SelectItem>
+                            <SelectItem value="Jane Doe">Jane Doe</SelectItem>
+                            <SelectItem value="Mike Wilson">Mike Wilson</SelectItem>
+                            <SelectItem value="Lisa Brown">Lisa Brown</SelectItem>
+                            <SelectItem value="Test Inspector">Test Inspector</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <p className="text-xs text-muted-foreground">
+                          Leave blank to default to "Agronomist" or select from common inspectors
+                        </p>
+                      </div>
+                    </CardContent>
+                  </Card>
+
                   {/* Inspector Notes */}
                   <Card>
                     <CardHeader>
@@ -464,10 +559,11 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="draft">Draft</SelectItem>
-                          <SelectItem value="submitted">Submitted</SelectItem>
-                          <SelectItem value="approved">Approved</SelectItem>
-                          <SelectItem value="rejected">Rejected</SelectItem>
+                          <SelectItem value="scheduled">Scheduled</SelectItem>
+                          <SelectItem value="in_progress">In Progress</SelectItem>
+                          <SelectItem value="completed">Completed</SelectItem>
+                          <SelectItem value="failed">Failed</SelectItem>
+                          <SelectItem value="cancelled">Cancelled</SelectItem>
                         </SelectContent>
                       </Select>
                     </CardContent>
@@ -479,22 +575,27 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
               <div className="flex gap-4 pt-6 border-t">
                 <Button
                   onClick={() => handleSave()}
-                  disabled={saving}
+                  disabled={saving || approving}
                   variant="outline"
                 >
                   <Save className="mr-2 h-4 w-4" />
                   {saving ? "Saving..." : "Save Draft"}
                 </Button>
-                <Button
-                  onClick={() => handleSave(status)}
-                  disabled={saving || completionPercentage < 100}
-                  className="bg-green-600 hover:bg-green-700"
-                >
-                  <CheckCircle className="mr-2 h-4 w-4" />
-                  {saving ? "Completing..." : "Complete Inspection"}
-                </Button>
+
+                {completionPercentage === 100 && inspection?.status !== status && (
+                  <Button
+                    onClick={() => handleSave(status)}
+                    disabled={saving || approving}
+                    className="bg-blue-600 hover:bg-blue-700"
+                  >
+                    <CheckCircle className="mr-2 h-4 w-4" />
+                    {saving ? `Saving as ${status}...` : `Submit as ${status.charAt(0).toUpperCase() + status.slice(1)}`}
+                  </Button>
+                )}
+
+
                 <Button variant="ghost" asChild>
-                  <Link href="/inspections">Cancel</Link>
+                  <Link href="/inspections">Back to Inspections</Link>
                 </Button>
               </div>
             </div>

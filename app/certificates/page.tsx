@@ -8,19 +8,23 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DataTable } from "@/components/ui/data-table"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Eye, Download, RefreshCw, Award, AlertTriangle, CheckCircle } from "lucide-react"
+import { Plus, Eye, Download, RefreshCw, Award, AlertTriangle, CheckCircle, X } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
-import type { Certificate } from "@/lib/types"
+import type { Certificate } from "@/lib/types/certificate"
 import Link from "next/link"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useEffect, useState } from "react"
-import { api } from "@/lib/api-client"
+import { fetchAllCertificates } from "@/lib/services/certificate-service"
+import { API_ENDPOINTS } from "@/lib/config"
+
 
 const columns: ColumnDef<Certificate>[] = [
   {
     accessorKey: "certificateNumber",
     header: "Certificate #",
-    cell: ({ row }) => <span className="font-mono text-sm">{row.getValue("certificateNumber")}</span>,
+    cell: ({ row }: { row: any }) => (
+      <span className="font-mono text-sm">{row.getValue("certificateNumber")}</span>
+    ),
   },
   {
     accessorKey: "farmerName",
@@ -33,21 +37,25 @@ const columns: ColumnDef<Certificate>[] = [
   {
     accessorKey: "cropTypes",
     header: "Crops",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: any }) => {
       const crops = row.getValue("cropTypes") as string[]
-      if (!crops || !Array.isArray(crops) || crops.length === 0) {
-        return <span className="text-muted-foreground text-sm">No crops specified</span>
+      if (!crops?.length) {
+        return <span className="text-muted-foreground text-sm">-</span>
       }
+
+      const displayCrops = crops.slice(0, 2)
+      const extraCount = crops.length - 2
+
       return (
         <div className="flex flex-wrap gap-1">
-          {crops.slice(0, 2).map((crop) => (
+          {displayCrops.map((crop: string) => (
             <Badge key={crop} variant="secondary" className="text-xs">
               {crop}
             </Badge>
           ))}
-          {crops.length > 2 && (
+          {extraCount > 0 && (
             <Badge variant="secondary" className="text-xs">
-              +{crops.length - 2}
+              +{extraCount}
             </Badge>
           )}
         </div>
@@ -57,20 +65,19 @@ const columns: ColumnDef<Certificate>[] = [
   {
     accessorKey: "issueDate",
     header: "Issue Date",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("issueDate"))
-      return date.toLocaleDateString()
-    },
+    cell: ({ row }: { row: any }) => new Date(row.getValue("issueDate")).toLocaleDateString(),
   },
   {
     accessorKey: "expiryDate",
     header: "Expiry Date",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("expiryDate"))
-      const isExpiringSoon = new Date(date.getTime() - 30 * 24 * 60 * 60 * 1000) < new Date()
+    cell: ({ row }: { row: any }) => {
+      const expiryDate = new Date(row.getValue("expiryDate"))
+      const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
+      const isExpiringSoon = expiryDate <= thirtyDaysFromNow
+
       return (
         <div className="flex items-center gap-2">
-          <span>{date.toLocaleDateString()}</span>
+          <span>{expiryDate.toLocaleDateString()}</span>
           {isExpiringSoon && <AlertTriangle className="h-4 w-4 text-yellow-500" />}
         </div>
       )
@@ -79,13 +86,28 @@ const columns: ColumnDef<Certificate>[] = [
   {
     accessorKey: "status",
     header: "Status",
-    cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
+    cell: ({ row }: { row: any }) => <StatusBadge status={row.getValue("status")} />,
   },
   {
     id: "actions",
     header: "Actions",
-    cell: ({ row }) => {
+    cell: ({ row }: { row: any }) => {
       const certificate = row.original
+
+      function downloadPDF() {
+        window.open(`/api/${API_ENDPOINTS.CERTIFICATES.PDF(certificate.id)}`, '_blank')
+      }
+
+      function approveRenewal() {
+        // TODO: Implement renewal approval
+        console.log('Approve renewal for certificate:', certificate.id)
+      }
+
+      function rejectRenewal() {
+        // TODO: Implement renewal rejection
+        console.log('Reject renewal for certificate:', certificate.id)
+      }
+
       return (
         <div className="flex items-center gap-2">
           <Button variant="ghost" size="sm" asChild>
@@ -93,18 +115,23 @@ const columns: ColumnDef<Certificate>[] = [
               <Eye className="h-4 w-4" />
             </Link>
           </Button>
-          <Button
-            variant="ghost"
-            size="sm"
-            onClick={() => {
-              window.open(`http://localhost:3002/api/certificates/${certificate.id}/pdf`, '_blank')
-            }}
-          >
+          <Button variant="ghost" size="sm" onClick={downloadPDF}>
             <Download className="h-4 w-4" />
           </Button>
-          <Button variant="ghost" size="sm">
-            <RefreshCw className="h-4 w-4" />
-          </Button>
+          {certificate.status === 'renewal_pending' ? (
+            <>
+              <Button variant="ghost" size="sm" onClick={approveRenewal} className="text-green-600 hover:text-green-700">
+                <CheckCircle className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" onClick={rejectRenewal} className="text-red-600 hover:text-red-700">
+                <X className="h-4 w-4" />
+              </Button>
+            </>
+          ) : (
+            <Button variant="ghost" size="sm">
+              <RefreshCw className="h-4 w-4" />
+            </Button>
+          )}
         </div>
       )
     },
@@ -112,29 +139,25 @@ const columns: ColumnDef<Certificate>[] = [
 ]
 
 function CertificatesContent() {
-  // State for certificates data
   const [certificates, setCertificates] = useState<Certificate[]>([])
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
 
-  // Fetch certificates data
   useEffect(() => {
-    const fetchCertificates = async () => {
+    async function loadCertificates() {
       try {
         setLoading(true)
         setError(null)
-
-        const certificatesData = await api.certificates.getAll()
-        setCertificates(certificatesData)
+        const data = await fetchAllCertificates()
+        setCertificates(data)
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch certificates')
-        console.error('Certificates fetch error:', err)
       } finally {
         setLoading(false)
       }
     }
 
-    fetchCertificates()
+    loadCertificates()
   }, [])
 
   if (loading) {
@@ -183,10 +206,10 @@ function CertificatesContent() {
     )
   }
 
-  const activeCertificates = certificates.filter((c) => c.status === "active")
-  const expiredCertificates = certificates.filter((c) => c.status === "expired")
-  const revokedCertificates = certificates.filter((c) => c.status === "revoked")
-  const expiringSoon = certificates.filter((c) => {
+  const activeCertificates = certificates.filter((c: Certificate) => c.status === "active")
+  const expiredCertificates = certificates.filter((c: Certificate) => c.status === "expired")
+  const revokedCertificates = certificates.filter((c: Certificate) => c.status === "revoked")
+  const expiringSoon = certificates.filter((c: Certificate) => {
     const expiryDate = new Date(c.expiryDate)
     const thirtyDaysFromNow = new Date(Date.now() + 30 * 24 * 60 * 60 * 1000)
     return c.status === "active" && expiryDate <= thirtyDaysFromNow
@@ -274,7 +297,7 @@ function CertificatesContent() {
               </CardHeader>
               <CardContent>
                 <div className="space-y-2">
-                  {expiringSoon.map((cert) => (
+                  {expiringSoon.map((cert: Certificate) => (
                     <div key={cert.id} className="flex items-center justify-between p-3 bg-white rounded border">
                       <div>
                         <p className="font-medium">{cert.farmName}</p>

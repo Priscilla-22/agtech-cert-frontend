@@ -1,9 +1,10 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { mockCertificates } from "@/lib/mock-data"
+import { fetchCertificateById, updateCertificate, revokeCertificate } from "@/lib/services/certificate-service"
+import { CertificateUpdateData } from "@/lib/types/certificate"
 
-export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
+export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const certificate = mockCertificates.find((c) => c.id === params.id)
+    const certificate = await fetchCertificateById(params.id)
 
     if (!certificate) {
       return NextResponse.json({ error: "Certificate not found" }, { status: 404 })
@@ -17,33 +18,26 @@ export async function GET(request: NextRequest, { params }: { params: { id: stri
 
 export async function PUT(request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const body = await request.json()
-    const certificateIndex = mockCertificates.findIndex((c) => c.id === params.id)
+    const body: CertificateUpdateData = await request.json()
+    const certificate = await updateCertificate(params.id, body)
 
-    if (certificateIndex === -1) {
+    if (!certificate) {
       return NextResponse.json({ error: "Certificate not found" }, { status: 404 })
     }
 
-    mockCertificates[certificateIndex] = {
-      ...mockCertificates[certificateIndex],
-      ...body,
-    }
-
-    return NextResponse.json(mockCertificates[certificateIndex])
+    return NextResponse.json(certificate)
   } catch (error) {
     return NextResponse.json({ error: "Failed to update certificate" }, { status: 500 })
   }
 }
 
-export async function DELETE(request: NextRequest, { params }: { params: { id: string } }) {
+export async function DELETE(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const certificateIndex = mockCertificates.findIndex((c) => c.id === params.id)
+    const success = await revokeCertificate(params.id)
 
-    if (certificateIndex === -1) {
+    if (!success) {
       return NextResponse.json({ error: "Certificate not found" }, { status: 404 })
     }
-
-    mockCertificates[certificateIndex].status = "revoked"
 
     return NextResponse.json({ message: "Certificate revoked successfully" })
   } catch (error) {

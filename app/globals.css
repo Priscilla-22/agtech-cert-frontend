@@ -321,11 +321,11 @@
 
   /* Enhanced shadows */
   .shadow-glow {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.08);
   }
 
   .shadow-glow-accent {
-    box-shadow: 0 0 20px rgba(5, 150, 105, 0.15);
+    box-shadow: 0 0 8px rgba(5, 150, 105, 0.08);
   }
 
   /* Modern gradient text */
@@ -347,7 +347,7 @@
   }
 
   .interactive-glow:hover {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.15);
+    box-shadow: 0 0 10px rgba(16, 185, 129, 0.05);
   }
 
   /* Loading states */
@@ -358,7 +358,7 @@
   /* Custom scrollbars for modern look */
   .custom-scrollbar {
     scrollbar-width: thin;
-    scrollbar-color: rgba(16, 185, 129, 0.3) transparent;
+    scrollbar-color: rgba(16, 185, 129, 0.15) transparent;
   }
 
   .custom-scrollbar::-webkit-scrollbar {
@@ -371,12 +371,12 @@
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb {
-    background: rgba(16, 185, 129, 0.3);
+    background: rgba(16, 185, 129, 0.15);
     border-radius: 3px;
   }
 
   .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-    background: rgba(16, 185, 129, 0.5);
+    background: rgba(16, 185, 129, 0.25);
   }
 
   /* Enhanced focus states */
@@ -391,7 +391,7 @@
 
   .btn-modern::before {
     content: '';
-    @apply absolute inset-0 bg-gradient-to-r from-primary/20 to-accent/20 opacity-0 transition-opacity duration-300;
+    @apply absolute inset-0 bg-gradient-to-r from-primary/10 to-accent/10 opacity-0 transition-opacity duration-300;
   }
 
   .btn-modern:hover::before {
@@ -475,10 +475,10 @@
 
 @keyframes glow {
   0%, 100% {
-    box-shadow: 0 0 20px rgba(16, 185, 129, 0.1);
+    box-shadow: 0 0 8px rgba(16, 185, 129, 0.05);
   }
   50% {
-    box-shadow: 0 0 30px rgba(16, 185, 129, 0.3);
+    box-shadow: 0 0 12px rgba(16, 185, 129, 0.1);
   }
 }
 

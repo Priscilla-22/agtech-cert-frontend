@@ -1,6 +1,5 @@
 import { API_CONFIG, API_ENDPOINTS, HTTP_METHODS } from './config'
 
-// Types
 export interface ApiResponse<T = any> {
   data?: T
   error?: string
@@ -20,7 +19,6 @@ export interface QueryParams {
   [key: string]: string | number | boolean | undefined
 }
 
-// API Client Class
 class ApiClient {
   private baseUrl: string
   private timeout: number
@@ -30,16 +28,12 @@ class ApiClient {
     this.timeout = API_CONFIG.TIMEOUT
   }
 
-  // Helper method to build URLs with query parameters
   private buildUrl(endpoint: string, params?: QueryParams): string {
     let url: URL
     
-    // Handle both absolute and relative base URLs
     if (this.baseUrl.startsWith('http')) {
-      // Absolute URL (server-side)
       url = new URL(endpoint, this.baseUrl)
     } else {
-      // Relative URL (client-side) - need to construct with current origin
       const fullUrl = this.baseUrl + endpoint
       url = new URL(fullUrl, window.location.origin)
     }
@@ -55,7 +49,6 @@ class ApiClient {
     return url.toString()
   }
 
-  // Core request method
   private async request<T = any>(
     endpoint: string, 
     options: RequestInit = {},
@@ -71,7 +64,6 @@ class ApiClient {
       },
     }
 
-    // Add timeout
     const controller = new AbortController()
     const timeoutId = setTimeout(() => controller.abort(), this.timeout)
     config.signal = controller.signal
@@ -87,7 +79,7 @@ class ApiClient {
           const errorData = await response.json()
           errorMessage = errorData.error || errorData.message || errorMessage
         } catch {
-          // If JSON parsing fails, use the default error message
+          // Use default error message
         }
 
         const error: ApiError = {
@@ -99,7 +91,6 @@ class ApiClient {
         throw error
       }
 
-      // Handle empty responses (like DELETE operations)
       const contentType = response.headers.get('content-type')
       if (!contentType?.includes('application/json')) {
         return {} as T
@@ -117,12 +108,10 @@ class ApiClient {
     }
   }
 
-  // Health check
   async healthCheck(): Promise<{ status: string; timestamp: string }> {
     return this.request(API_ENDPOINTS.HEALTH)
   }
 
-  // Farmer APIs
   farmers = {
     getAll: (params?: {
       search?: string
@@ -166,7 +155,6 @@ class ApiClient {
     },
   }
 
-  // Farm APIs
   farms = {
     getAll: (params?: { farmerId?: string }) => {
       return this.request<ApiResponse<any[]>>(API_ENDPOINTS.FARMS.LIST, { method: HTTP_METHODS.GET }, params)
@@ -199,7 +187,6 @@ class ApiClient {
     },
   }
 
-  // Field APIs
   fields = {
     getAll: (params?: { farmId?: string }) => {
       return this.request<ApiResponse<any[]>>(API_ENDPOINTS.FIELDS.LIST, { method: HTTP_METHODS.GET }, params)
@@ -232,7 +219,6 @@ class ApiClient {
     },
   }
 
-  // Inspection APIs
   inspections = {
     getAll: () => {
       return this.request<ApiResponse<any[]>>(API_ENDPOINTS.INSPECTIONS.LIST, { method: HTTP_METHODS.GET })
@@ -279,7 +265,6 @@ class ApiClient {
     },
   }
 
-  // Certificate APIs
   certificates = {
     getAll: () => {
       return this.request<ApiResponse<any[]>>(API_ENDPOINTS.CERTIFICATES.LIST, { method: HTTP_METHODS.GET })
@@ -319,7 +304,6 @@ class ApiClient {
     },
   }
 
-  // Dashboard APIs
   dashboard = {
     getStats: () => {
       return this.request(API_ENDPOINTS.DASHBOARD.STATS, { method: HTTP_METHODS.GET })
@@ -327,8 +311,5 @@ class ApiClient {
   }
 }
 
-// Export singleton instance
 export const api = new ApiClient()
-
-// Export the class for testing
 export { ApiClient }

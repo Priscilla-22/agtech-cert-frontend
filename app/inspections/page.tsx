@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { DataTable } from "@/components/ui/data-table"
 import { StatusBadge } from "@/components/ui/status-badge"
 import { Badge } from "@/components/ui/badge"
-import { Plus, Eye, Edit, Calculator, Calendar, Clock, CheckCircle, XCircle, AlertTriangle, ToggleRight, History, MoreHorizontal } from "lucide-react"
+import { Plus, Eye, Edit, Calculator, Calendar, Clock, CheckCircle, XCircle, AlertTriangle, ToggleRight, History, MoreHorizontal, Award } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
 import type { Inspection } from "@/lib/types"
 import Link from "next/link"
@@ -17,6 +17,7 @@ import { useEffect, useState } from "react"
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
+import { API_ENDPOINTS, API_BASE_URL } from "@/lib/config"
 
 function StatusChangeDialog({
   inspection,
@@ -34,11 +35,9 @@ function StatusChangeDialog({
   const [loading, setLoading] = useState(false)
   const { toast } = useToast()
 
-  // Use controlled or uncontrolled state
   const isOpen = open !== undefined ? open : internalOpen
   const setIsOpen = onOpenChange || setInternalOpen
 
-  // Reset newStatus when dialog opens or inspection changes
   useEffect(() => {
     setNewStatus(inspection.status)
   }, [inspection.status, isOpen])
@@ -54,7 +53,7 @@ function StatusChangeDialog({
       let response
       console.log(`Changing status from ${inspection.status} to ${newStatus}`)
 
-      response = await fetch(`http://localhost:3002/api/inspections/${inspection.id}`, {
+      response = await fetch(`/api/${API_ENDPOINTS.INSPECTIONS.DETAIL(inspection.id)}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status: newStatus })
@@ -64,7 +63,6 @@ function StatusChangeDialog({
         const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
         console.error('Status update failed:', errorData)
 
-        // Show specific error message to user
         toast({
           variant: "destructive",
           title: "Cannot Update Status",
@@ -82,13 +80,11 @@ function StatusChangeDialog({
       })
 
       setIsOpen(false)
-      // Wait a bit before refreshing to ensure backend update is complete
       setTimeout(() => {
         onStatusChange()
       }, 100)
     } catch (error) {
-      console.error('Status change error:', error)
-      // Only show generic error if we haven't already shown a specific one
+
       if (!error.message?.includes('Failed to update status:')) {
         toast({
           variant: "destructive",
@@ -172,7 +168,7 @@ function StatusHistoryDialog({
 
     setLoading(true)
     try {
-      const response = await fetch(`http://localhost:3002/api/inspections/${inspection.id}/history`)
+      const response = await fetch(`/api/${API_ENDPOINTS.INSPECTIONS.DETAIL(inspection.id)}/history`)
       if (response.ok) {
         const historyData = await response.json()
         setHistory(historyData)
@@ -235,10 +231,106 @@ function StatusHistoryDialog({
   )
 }
 
+function GenerateCertificateButton({ inspection, onStatusChange }: { inspection: Inspection, onStatusChange: () => void }) {
+  const [generating, setGenerating] = useState(false)
+  const { toast } = useToast()
+
+  const handleGenerateCertificate = async () => {
+    setGenerating(true)
+
+    try {
+      const response = await fetch(`${API_BASE_URL}/inspections/${inspection.id}/approve`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({})
+      })
+
+      if (!response.ok) {
+        // Try to parse error message
+        try {
+          const errorData = await response.json()
+          throw new Error(errorData.error || 'Certificate generation failed')
+        } catch {
+          throw new Error('Certificate generation failed')
+        }
+      }
+
+      // Check if response is PDF
+      const contentType = response.headers.get('content-type')
+      if (contentType === 'application/pdf') {
+        // Handle PDF download
+        const blob = await response.blob()
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.style.display = 'none'
+        a.href = url
+
+        // Extract filename from Content-Disposition header
+        const contentDisposition = response.headers.get('content-disposition')
+        let filename = 'certificate.pdf'
+        if (contentDisposition) {
+          const filenameMatch = contentDisposition.match(/filename="(.+)"/)
+          if (filenameMatch) {
+            filename = filenameMatch[1]
+          }
+        }
+
+        a.download = filename
+        document.body.appendChild(a)
+        a.click()
+        window.URL.revokeObjectURL(url)
+        document.body.removeChild(a)
+
+        toast({
+          title: "Certificate Generated Successfully!",
+          description: `Certificate has been generated and downloaded automatically.`
+        })
+      } else {
+        // Fallback for JSON response
+        const data = await response.json()
+        toast({
+          title: "Certificate Generated Successfully!",
+          description: data.certificate?.certificateNumber
+            ? `Certificate #${data.certificate.certificateNumber} has been generated.`
+            : "Certificate generation completed successfully."
+        })
+      }
+
+      // Refresh the inspections list
+      setTimeout(() => {
+        onStatusChange()
+      }, 1000)
+
+    } catch (error) {
+      console.error('Error generating certificate:', error)
+      toast({
+        variant: "destructive",
+        title: "Certificate Generation Failed",
+        description: error instanceof Error ? error.message : "Failed to generate certificate. Please try again."
+      })
+    } finally {
+      setGenerating(false)
+    }
+  }
+
+  return (
+    <Button
+      size="sm"
+      onClick={handleGenerateCertificate}
+      disabled={generating}
+      className="bg-green-500 hover:bg-green-600 text-white"
+    >
+      <Award className="mr-2 h-4 w-4" />
+      {generating ? "Generating..." : "Generate"}
+    </Button>
+  )
+}
+
 function ActionsDropdown({ inspection, onStatusChange }: { inspection: Inspection, onStatusChange: () => void }) {
   const [showMenu, setShowMenu] = useState(false)
   const [showStatusDialog, setShowStatusDialog] = useState(false)
   const [showHistoryDialog, setShowHistoryDialog] = useState(false)
+  const { toast } = useToast()
 
   const handleStatusDialogOpen = () => {
     setShowMenu(false)
@@ -314,6 +406,7 @@ function ActionsDropdown({ inspection, onStatusChange }: { inspection: Inspectio
               <Edit className="mr-2 h-4 w-4" />
               Edit Inspection
             </Link>
+
           </div>
         </>
       )}
@@ -382,6 +475,22 @@ const createColumns = (onStatusChange: () => void): ColumnDef<Inspection>[] => [
     },
   },
   {
+    id: "certificate",
+    header: "Certificate",
+    cell: ({ row }) => {
+      const inspection = row.original
+      if (inspection.status === 'completed' && inspection.score >= 80) {
+        return (
+          <GenerateCertificateButton
+            inspection={inspection}
+            onStatusChange={onStatusChange}
+          />
+        )
+      }
+      return <span className="text-muted-foreground text-sm">-</span>
+    },
+  },
+  {
     id: "actions",
     header: "Actions",
     cell: ({ row }) => {
@@ -403,7 +512,7 @@ function InspectionsContent() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`http://localhost:3002/api/inspections?t=${Date.now()}`, {
+      const response = await fetch(`/api/${API_ENDPOINTS.INSPECTIONS.LIST}?t=${Date.now()}`, {
         cache: 'no-cache',
         headers: {
           'Cache-Control': 'no-cache'
@@ -419,7 +528,7 @@ function InspectionsContent() {
 
       // Also fetch status distribution for debugging
       try {
-        const statusResponse = await fetch('http://localhost:3002/api/inspections/status-distribution')
+        const statusResponse = await fetch(`/api/${API_ENDPOINTS.INSPECTIONS.STATUS_DISTRIBUTION}`)
         if (statusResponse.ok) {
           const statusData = await statusResponse.json()
           console.log('Status distribution from backend:', statusData)

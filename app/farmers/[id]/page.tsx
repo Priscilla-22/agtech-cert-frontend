@@ -6,7 +6,7 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { ArrowLeft, Edit, MapPin, Phone, Mail, Calendar, Building2, AlertTriangle, User, Star, Briefcase, DollarSign, CheckCircle } from "lucide-react"
+import { ArrowLeft, Edit, MapPin, Phone, Mail, Calendar, Building2, AlertTriangle, User, Star, Briefcase, DollarSign, CheckCircle, ChevronLeft, ChevronRight } from "lucide-react"
 import Link from "next/link"
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
@@ -23,6 +23,9 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [activeTab, setActiveTab] = useState('farm-details')
+  // Pagination state for farms
+  const [currentFarmPage, setCurrentFarmPage] = useState(1)
+  const farmsPerPage = 5
   const router = useRouter()
 
   useEffect(() => {
@@ -35,17 +38,15 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
         const farmerData = await api.farmers.getById(params.id)
         setFarmer(farmerData)
 
-        // Fetch farmer's farms (optional - may not exist yet)
+        // Fetch farms
         try {
           const farmsData = await api.farms.getByFarmerId(params.id)
-          // Handle both array and object response formats
-          if (Array.isArray(farmsData)) {
+            if (Array.isArray(farmsData)) {
             setFarmerFarms(farmsData)
           } else {
             setFarmerFarms(farmsData.data || [])
           }
         } catch (farmError) {
-          // Farms endpoint might not exist yet, so we'll just use empty array
           setFarmerFarms([])
         }
 
@@ -440,44 +441,107 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                 </div>
               </div>
 
-              {/* Registered Farms Section */}
-              {farmerFarms.length > 0 && (
-                <div className="mt-8">
-                  <div className="bg-white rounded-2xl shadow-lg p-6">
-                    <h3 className="text-xl font-bold text-gray-900 mb-4">Registered Farms</h3>
-                    <div className="space-y-4">
-                      {farmerFarms.map((farm) => (
-                        <div key={farm.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:shadow-md transition-shadow">
-                          <div className="flex items-center gap-4">
-                            <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
-                              <Building2 className="h-6 w-6 text-green-600" />
+              {/* Registered Farms Section with Pagination */}
+              {farmerFarms.length > 0 && (() => {
+                // Calculate pagination
+                const totalFarms = farmerFarms.length
+                const totalPages = Math.ceil(totalFarms / farmsPerPage)
+                const startIndex = (currentFarmPage - 1) * farmsPerPage
+                const endIndex = startIndex + farmsPerPage
+                const currentFarms = farmerFarms.slice(startIndex, endIndex)
+
+                return (
+                  <div className="mt-8">
+                    <div className="bg-white rounded-2xl shadow-lg p-6">
+                      <div className="flex items-center justify-between mb-4">
+                        <h3 className="text-xl font-bold text-gray-900">Registered Farms</h3>
+                        <span className="text-sm text-gray-500">
+                          Showing {startIndex + 1}-{Math.min(endIndex, totalFarms)} of {totalFarms} farms
+                        </span>
+                      </div>
+
+                      <div className="space-y-4">
+                        {currentFarms.map((farm) => (
+                          <div key={farm.id} className="flex items-center justify-between p-4 border border-gray-100 rounded-xl hover:shadow-md transition-shadow">
+                            <div className="flex items-center gap-4">
+                              <div className="w-12 h-12 bg-green-100 rounded-xl flex items-center justify-center">
+                                <Building2 className="h-6 w-6 text-green-600" />
+                              </div>
+                              <div>
+                                <h4 className="font-bold text-gray-900">{farm.farmName || farm.name}</h4>
+                                <p className="text-sm text-gray-500">{farm.location}</p>
+                                <p className="text-sm text-gray-500">{farm.totalArea || farm.size} hectares</p>
+                              </div>
                             </div>
-                            <div>
-                              <h4 className="font-bold text-gray-900">{farm.name}</h4>
-                              <p className="text-sm text-gray-500">{farm.location}</p>
-                              <p className="text-sm text-gray-500">{farm.size} hectares</p>
+                            <div className="flex items-center gap-4">
+                              <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
+                                {farm.certificationStatus || 'Pending'}
+                              </span>
+                              <Button
+                                variant="outline"
+                                size="sm"
+                                asChild
+                                className="rounded-full"
+                                style={{ borderColor: '#f4a261', color: '#f4a261' }}
+                              >
+                                <Link href={`/farms/${farm.id}`}>View Farm</Link>
+                              </Button>
                             </div>
                           </div>
-                          <div className="flex items-center gap-4">
-                            <span className="px-3 py-1 bg-green-100 text-green-700 rounded-full text-sm font-medium">
-                              {farm.certificationStatus || 'Pending'}
-                            </span>
+                        ))}
+                      </div>
+
+                      {/* Pagination Controls */}
+                      {totalPages > 1 && (
+                        <div className="flex items-center justify-between mt-6 pt-4 border-t border-gray-100">
+                          <div className="flex items-center gap-2">
                             <Button
                               variant="outline"
                               size="sm"
-                              asChild
-                              className="rounded-full"
-                              style={{ borderColor: '#f4a261', color: '#f4a261' }}
+                              onClick={() => setCurrentFarmPage(prev => Math.max(prev - 1, 1))}
+                              disabled={currentFarmPage === 1}
+                              className="flex items-center gap-1"
                             >
-                              <Link href={`/farms/${farm.id}`}>View Farm</Link>
+                              <ChevronLeft className="h-4 w-4" />
+                              Previous
+                            </Button>
+                            <Button
+                              variant="outline"
+                              size="sm"
+                              onClick={() => setCurrentFarmPage(prev => Math.min(prev + 1, totalPages))}
+                              disabled={currentFarmPage === totalPages}
+                              className="flex items-center gap-1"
+                            >
+                              Next
+                              <ChevronRight className="h-4 w-4" />
                             </Button>
                           </div>
+
+                          <div className="flex items-center gap-2">
+                            <span className="text-sm text-gray-500">
+                              Page {currentFarmPage} of {totalPages}
+                            </span>
+                            <div className="flex gap-1">
+                              {Array.from({ length: totalPages }, (_, i) => i + 1).map((page) => (
+                                <Button
+                                  key={page}
+                                  variant={currentFarmPage === page ? "default" : "outline"}
+                                  size="sm"
+                                  onClick={() => setCurrentFarmPage(page)}
+                                  className="w-8 h-8 p-0"
+                                  style={currentFarmPage === page ? { backgroundColor: '#f4a261', borderColor: '#f4a261' } : {}}
+                                >
+                                  {page}
+                                </Button>
+                              ))}
+                            </div>
+                          </div>
                         </div>
-                      ))}
+                      )}
                     </div>
                   </div>
-                </div>
-              )}
+                )
+              })()}
             </div>
           </main>
         </div>

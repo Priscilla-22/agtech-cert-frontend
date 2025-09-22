@@ -15,6 +15,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import ProtectedRoute from "@/components/ProtectedRoute"
+import { API_ENDPOINTS } from "@/lib/config"
 
 interface RenewCertificatePageProps {
   params: { id: string }
@@ -37,7 +38,7 @@ function RenewCertificateContent({ params }: RenewCertificatePageProps) {
   useEffect(() => {
     const fetchCertificate = async () => {
       try {
-        const response = await fetch(`http://localhost:3002/api/certificates/${params.id}`)
+        const response = await fetch(`/api/${API_ENDPOINTS.CERTIFICATES.DETAIL(params.id)}`)
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -82,7 +83,7 @@ function RenewCertificateContent({ params }: RenewCertificatePageProps) {
     setSubmitting(true)
 
     try {
-      const response = await fetch(`http://localhost:3002/api/certificates/${params.id}/renew`, {
+      const response = await fetch(`/api/${API_ENDPOINTS.CERTIFICATES.RENEW(params.id)}`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'
@@ -100,7 +101,7 @@ function RenewCertificateContent({ params }: RenewCertificatePageProps) {
       }
 
       toast({
-        title: "✅ Renewal Request Submitted!",
+        title: " Renewal Request Submitted!",
         description: "Your certificate renewal request has been submitted for review."
       })
 
@@ -108,7 +109,6 @@ function RenewCertificateContent({ params }: RenewCertificatePageProps) {
         router.push('/certificates')
       }, 1500)
     } catch (error) {
-      console.error('Error submitting renewal:', error)
       toast({
         variant: "destructive",
         title: "Submission Failed",

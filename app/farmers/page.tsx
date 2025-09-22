@@ -6,161 +6,17 @@ import { Footer } from "@/components/layout/footer"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { DataTable } from "@/components/ui/data-table"
-import { StatusBadge } from "@/components/ui/status-badge"
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
 import { FarmersFilter, type FilterValues } from "@/components/farmers/FarmersFilter"
 import { ExportButton } from "@/components/exports/ExportButton"
-import { Plus, Eye, Edit, Trash2, AlertTriangle, MoreHorizontal, Search } from "lucide-react"
-import type { ColumnDef } from "@tanstack/react-table"
-import type { Farmer } from "@/lib/types"
+import { Plus, AlertTriangle, Search } from "lucide-react"
 import Link from "next/link"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useEffect, useState } from "react"
-import { api, type ApiError } from "@/lib/api-client"
+import { fetchAllFarmers } from "@/lib/services/farmer-service"
+import { Farmer } from "@/lib/types/farmer"
+import { createFarmerColumns } from "@/components/farmers/farmer-columns"
 
-function ActionsCell({ farmer, onDelete }: { farmer: Farmer; onDelete: (farmerId: string) => void }) {
-  const router = useRouter()
-  const [showMenu, setShowMenu] = useState(false)
-  const [isDeleting, setIsDeleting] = useState(false)
-
-  const handleDelete = async () => {
-    if (confirm(`Are you sure you want to delete ${farmer.name}? This action cannot be undone and will also delete all associated farms and data.`)) {
-      try {
-        setIsDeleting(true)
-        await api.farmers.delete(farmer.id)
-        
-        // Call the parent's delete handler to update the list
-        onDelete(farmer.id)
-      } catch (error) {
-        console.error('Delete error:', error)
-        const errorMessage = error instanceof Error ? error.message : 'Failed to delete farmer. Please try again.'
-        alert(errorMessage)
-      } finally {
-        setIsDeleting(false)
-      }
-    }
-    setShowMenu(false)
-  }
-
-  return (
-    <div className="relative flex items-center justify-center">
-      <Button
-        variant="ghost"
-        size="sm"
-        className="h-8 w-8 p-0 hover:bg-muted"
-        onClick={() => setShowMenu(!showMenu)}
-        aria-label="Open actions menu"
-      >
-        <MoreHorizontal className="h-4 w-4" />
-      </Button>
-
-      {showMenu && (
-        <>
-          {/* Overlay to close menu when clicking outside */}
-          <div
-            className="fixed inset-0 z-40"
-            onClick={() => setShowMenu(false)}
-          />
-
-          {/* Dropdown Menu */}
-          <div className="absolute right-0 top-8 z-50 w-48 bg-white border border-gray-200 rounded-md shadow-lg py-1">
-            <button
-              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center"
-              onClick={() => {
-                router.push(`/farmers/${farmer.id}`)
-                setShowMenu(false)
-              }}
-            >
-              <Eye className="mr-2 h-4 w-4" />
-              View Details
-            </button>
-            <button
-              className="w-full px-3 py-2 text-left text-sm hover:bg-gray-50 flex items-center"
-              onClick={() => {
-                router.push(`/farmers/${farmer.id}/edit`)
-                setShowMenu(false)
-              }}
-            >
-              <Edit className="mr-2 h-4 w-4" />
-              Edit Farmer
-            </button>
-            <button
-              className="w-full px-3 py-2 text-left text-sm hover:bg-red-50 text-red-600 flex items-center disabled:opacity-50"
-              onClick={handleDelete}
-              disabled={isDeleting}
-            >
-              <Trash2 className="mr-2 h-4 w-4" />
-              {isDeleting ? 'Deleting...' : 'Delete Farmer'}
-            </button>
-          </div>
-        </>
-      )}
-    </div>
-  )
-}
-
-const createColumns = (onDelete: (farmerId: string) => void): ColumnDef<Farmer>[] => [
-  {
-    id: "row-number",
-    header: "#",
-    cell: ({ row }) => (
-      <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center">
-        <span className="text-sm font-medium text-primary">
-          {row.index + 1}
-        </span>
-      </div>
-    ),
-  },
-  {
-    accessorKey: "name",
-    header: "Name",
-  },
-  {
-    accessorKey: "email",
-    header: "Email",
-  },
-  {
-    accessorKey: "phone",
-    header: "Phone",
-  },
-  {
-    accessorKey: "totalFarms",
-    header: "Farms",
-    cell: ({ row }) => <span className="font-medium">{row.getValue("totalFarms")}</span>,
-  },
-  {
-    accessorKey: "status",
-    header: "Status",
-    cell: ({ row }) => <StatusBadge status={row.getValue("status")} />,
-  },
-  {
-    accessorKey: "certificationStatus",
-    header: "Certification",
-    cell: ({ row }) => <StatusBadge status={row.getValue("certificationStatus")} />,
-  },
-  {
-    accessorKey: "registrationDate",
-    header: "Registered",
-    cell: ({ row }) => {
-      const date = new Date(row.getValue("registrationDate"))
-      return date.toLocaleDateString()
-    },
-  },
-  {
-    id: "actions",
-    header: "Actions",
-    cell: ({ row }) => {
-      const farmer = row.original
-      return <ActionsCell farmer={farmer} onDelete={onDelete} />
-    },
-  },
-]
 
 export default function FarmersPage() {
   const { user, loading: authLoading } = useAuth()
@@ -197,81 +53,43 @@ export default function FarmersPage() {
     console.error('Export error:', error)
   }
 
-  // Fetch farmers data
-  const fetchFarmers = async (filtersToApply: FilterValues = filters, paginationToApply = pagination) => {
+  async function loadFarmers() {
     try {
       setLoading(true)
       setError(null)
 
-      // Prepare parameters for API call
-      const params = {
-        ...filtersToApply,
-        limit: paginationToApply.limit,
-        offset: paginationToApply.offset,
-        // Format dates for backend
-        registrationDateFrom: filtersToApply.registrationDateFrom ? 
-          (filtersToApply.registrationDateFrom as Date).toISOString().split('T')[0] : undefined,
-        registrationDateTo: filtersToApply.registrationDateTo ? 
-          (filtersToApply.registrationDateTo as Date).toISOString().split('T')[0] : undefined,
-      }
-
-      const result = await api.farmers.getAll(params)
-
-      // Handle both old format (array) and new format (object with data array)
-      if (Array.isArray(result)) {
-        setFarmers(result)
-        setTotalFarmers(result.length)
-      } else {
-        setFarmers(result.data || [])
-        setTotalFarmers(result.total || 0)
-      }
+      const result = await fetchAllFarmers()
+      setFarmers(result || [])
+      setTotalFarmers(result?.length || 0)
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : 'Failed to fetch farmers'
       setError(errorMessage)
-      console.error('Farmers fetch error:', err)
     } finally {
       setLoading(false)
     }
   }
 
-  // Filter handlers
-  const handleFiltersChange = (newFilters: FilterValues) => {
+  function handleFiltersChange(newFilters: FilterValues) {
     setFilters(newFilters)
   }
 
-  const handleApplyFilters = () => {
-    // Reset pagination when applying new filters
-    const newPagination = { ...pagination, offset: 0 }
-    setPagination(newPagination)
-    fetchFarmers(filters, newPagination)
+  function handleApplyFilters() {
+    loadFarmers()
   }
 
-  const handleClearFilters = () => {
-    const clearedFilters: FilterValues = {}
-    setFilters(clearedFilters)
-    const newPagination = { ...pagination, offset: 0 }
-    setPagination(newPagination)
-    fetchFarmers(clearedFilters, newPagination)
+  function handleClearFilters() {
+    setFilters({})
+    loadFarmers()
   }
 
-  // Delete handler
-  const handleDeleteFarmer = (farmerId: string) => {
-    // Remove farmer from current list
+  function handleDeleteFarmer(farmerId: string) {
     setFarmers(prevFarmers => prevFarmers.filter(farmer => farmer.id !== farmerId))
     setTotalFarmers(prev => prev - 1)
   }
 
-  // Initial fetch
   useEffect(() => {
-    fetchFarmers()
+    loadFarmers()
   }, [])
-
-  // Fetch when pagination changes (but not filters - those are handled manually)
-  useEffect(() => {
-    if (pagination.offset > 0) {
-      fetchFarmers()
-    }
-  }, [pagination.offset, pagination.limit])
 
   useEffect(() => {
     if (!authLoading && !user) {
@@ -466,7 +284,7 @@ export default function FarmersPage() {
                   </div>
 
                   <DataTable
-                    columns={createColumns(handleDeleteFarmer)}
+                    columns={createFarmerColumns(handleDeleteFarmer)}
                     data={farmers}
                     searchKey=""
                     searchPlaceholder=""

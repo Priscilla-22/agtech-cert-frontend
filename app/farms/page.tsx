@@ -33,6 +33,9 @@ import {
   Building2,
   ChevronLeft,
   ChevronRight,
+  Filter,
+  Grid3X3,
+  List,
 } from "lucide-react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { api } from "@/lib/api-client"
@@ -49,6 +52,14 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select"
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table"
 
 interface Farm {
   id: number
@@ -62,10 +73,6 @@ interface Farm {
   lastInspection?: string
   organicSince: string
   status?: string
-  coordinates?: {
-    latitude: number
-    longitude: number
-  }
 }
 
 function FarmsContent() {
@@ -75,9 +82,11 @@ function FarmsContent() {
   const [statusFilter, setStatusFilter] = useState("all")
   const [certificationFilter, setCertificationFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(0)
+  const [showFilters, setShowFilters] = useState(false)
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table')
   const { toast } = useToast()
 
-  const ITEMS_PER_PAGE = 2
+  const ITEMS_PER_PAGE = 10
 
   const fetchFarms = async () => {
     try {
@@ -104,7 +113,7 @@ function FarmsContent() {
 
   useEffect(() => {
     fetchFarms()
-    setCurrentPage(0) // Reset to first page when filters change
+    setCurrentPage(0)
   }, [searchTerm, statusFilter, certificationFilter])
 
   // Filter farms based on current filters
@@ -204,16 +213,26 @@ function FarmsContent() {
                     Manage and track agricultural farms in the certification system
                   </p>
                 </div>
-                <Link href="/farms/new">
-                  <Button className="flex items-center gap-2">
-                    <Plus className="w-4 h-4" />
-                    Add New Farm
+                <div className="flex gap-2">
+                  <Button
+                    variant="outline"
+                    onClick={() => setShowFilters(!showFilters)}
+                    className="flex items-center gap-2"
+                  >
+                    <Filter className="w-4 h-4" />
+                    {showFilters ? 'Hide Filters' : 'Show Filters'}
                   </Button>
-                </Link>
+                  <Link href="/farms/new">
+                    <Button className="flex items-center gap-2">
+                      <Plus className="w-4 h-4" />
+                      Add New Farm
+                    </Button>
+                  </Link>
+                </div>
               </div>
 
               {/* Stats Cards */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-12 mb-20">
                 <Card>
                   <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
                     <CardTitle className="text-sm font-medium">Total Farms</CardTitle>
@@ -259,59 +278,85 @@ function FarmsContent() {
               </div>
 
               {/* Filters */}
-              <Card>
-                <CardHeader>
-                  <CardTitle>Search & Filter</CardTitle>
-                  <CardDescription>
-                    Find farms by name, location, or farmer
-                  </CardDescription>
-                </CardHeader>
-                <CardContent>
-                  <div className="flex flex-col gap-4 md:flex-row">
-                    <div className="relative flex-1">
-                      <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
-                      <Input
-                        placeholder="Search farms..."
-                        className="pl-10"
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                      />
+              {showFilters && (
+                <Card>
+                  <CardHeader>
+                    <CardTitle>Search & Filter</CardTitle>
+                    <CardDescription>
+                      Find farms by name, location, or farmer
+                    </CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="flex flex-col gap-4 md:flex-row">
+                      <div className="relative flex-1">
+                        <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
+                        <Input
+                          placeholder="Search farms..."
+                          className="pl-10"
+                          value={searchTerm}
+                          onChange={(e) => setSearchTerm(e.target.value)}
+                        />
+                      </div>
+                      <Select value={statusFilter} onValueChange={setStatusFilter}>
+                        <SelectTrigger className="w-full md:w-40">
+                          <SelectValue placeholder="Status" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Status</SelectItem>
+                          <SelectItem value="active">Active</SelectItem>
+                          <SelectItem value="inactive">Inactive</SelectItem>
+                          <SelectItem value="suspended">Suspended</SelectItem>
+                        </SelectContent>
+                      </Select>
+                      <Select value={certificationFilter} onValueChange={setCertificationFilter}>
+                        <SelectTrigger className="w-full md:w-40">
+                          <SelectValue placeholder="Certification" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="all">All Certifications</SelectItem>
+                          <SelectItem value="certified">Certified</SelectItem>
+                          <SelectItem value="pending">Pending</SelectItem>
+                          <SelectItem value="expired">Expired</SelectItem>
+                          <SelectItem value="not-certified">Not Certified</SelectItem>
+                        </SelectContent>
+                      </Select>
                     </div>
-                    <Select value={statusFilter} onValueChange={setStatusFilter}>
-                      <SelectTrigger className="w-full md:w-40">
-                        <SelectValue placeholder="Status" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Status</SelectItem>
-                        <SelectItem value="active">Active</SelectItem>
-                        <SelectItem value="inactive">Inactive</SelectItem>
-                        <SelectItem value="suspended">Suspended</SelectItem>
-                      </SelectContent>
-                    </Select>
-                    <Select value={certificationFilter} onValueChange={setCertificationFilter}>
-                      <SelectTrigger className="w-full md:w-40">
-                        <SelectValue placeholder="Certification" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="all">All Certifications</SelectItem>
-                        <SelectItem value="certified">Certified</SelectItem>
-                        <SelectItem value="pending">Pending</SelectItem>
-                        <SelectItem value="expired">Expired</SelectItem>
-                        <SelectItem value="not-certified">Not Certified</SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
-                </CardContent>
-              </Card>
+                  </CardContent>
+                </Card>
+              )}
 
               {/* Farms Cards */}
               <Card>
                 <CardHeader>
-                  <CardTitle>Farms ({filteredFarms.length})</CardTitle>
-                  <CardDescription>
-                    All registered farms in the system
-                    {filteredFarms.length !== farms.length && ` - Showing ${filteredFarms.length} of ${farms.length} farms`}
-                  </CardDescription>
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle>Farms ({filteredFarms.length})</CardTitle>
+                      <CardDescription>
+                        All registered farms in the system
+                        {filteredFarms.length !== farms.length && ` - Showing ${filteredFarms.length} of ${farms.length} farms`}
+                      </CardDescription>
+                    </div>
+                    <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+                      <Button
+                        variant={viewMode === 'cards' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setViewMode('cards')}
+                        className="h-8 px-3"
+                      >
+                        <Grid3X3 className="w-4 h-4 mr-1" />
+                        Cards
+                      </Button>
+                      <Button
+                        variant={viewMode === 'table' ? 'default' : 'ghost'}
+                        size="sm"
+                        onClick={() => setViewMode('table')}
+                        className="h-8 px-3"
+                      >
+                        <List className="w-4 h-4 mr-1" />
+                        Table
+                      </Button>
+                    </div>
+                  </div>
                 </CardHeader>
                 <CardContent>
                   {filteredFarms.length === 0 ? (
@@ -331,138 +376,252 @@ function FarmsContent() {
                     </div>
                   ) : (
                     <div className="space-y-6">
-                      {/* Farm Cards Grid */}
-                      <div className="grid gap-6 md:grid-cols-2">
-                        {paginatedFarms.map((farm) => (
-                          <Card key={farm.id} className="border border-gray-200 hover:shadow-lg transition-shadow">
-                            <CardHeader className="pb-3">
-                              <div className="flex items-start justify-between">
-                                <div className="space-y-1">
-                                  <CardTitle className="text-lg">{farm.farmName}</CardTitle>
-                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <User className="w-4 h-4" />
-                                    {farm.farmerName || `Farmer #${farm.farmerId}`}
+                      {viewMode === 'cards' ? (
+                        /* Farm Cards Grid */
+                        <div className="grid gap-6 md:grid-cols-2">
+                          {paginatedFarms.map((farm) => (
+                            <Card key={farm.id} className="border border-gray-200 hover:shadow-lg transition-shadow">
+                              <CardHeader className="pb-3">
+                                <div className="flex items-start justify-between">
+                                  <div className="space-y-1">
+                                    <CardTitle className="text-lg">{farm.farmName}</CardTitle>
+                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                      <User className="w-4 h-4" />
+                                      {farm.farmerName || `Farmer #${farm.farmerId}`}
+                                    </div>
                                   </div>
-                                </div>
-                                <DropdownMenu>
-                                  <DropdownMenuTrigger asChild>
-                                    <Button variant="ghost" size="sm">
-                                      <MoreHorizontal className="w-4 h-4" />
-                                    </Button>
-                                  </DropdownMenuTrigger>
-                                  <DropdownMenuContent align="end">
-                                    <DropdownMenuItem asChild>
-                                      <Link href={`/farms/${farm.id}`}>
-                                        <Eye className="w-4 h-4 mr-2" />
-                                        View Details
-                                      </Link>
-                                    </DropdownMenuItem>
-                                    <DropdownMenuItem asChild>
-                                      <Link href={`/farms/${farm.id}/edit`}>
-                                        <Edit className="w-4 h-4 mr-2" />
-                                        Edit Farm
-                                      </Link>
-                                    </DropdownMenuItem>
-                                    <AlertDialog>
-                                      <AlertDialogTrigger asChild>
-                                        <DropdownMenuItem
-                                          className="text-red-600"
-                                          onSelect={(e) => e.preventDefault()}
-                                        >
-                                          <Trash2 className="w-4 h-4 mr-2" />
-                                          Delete Farm
-                                        </DropdownMenuItem>
-                                      </AlertDialogTrigger>
-                                      <AlertDialogContent>
-                                        <AlertDialogHeader>
-                                          <AlertDialogTitle>Delete Farm</AlertDialogTitle>
-                                          <AlertDialogDescription>
-                                            Are you sure you want to delete "{farm.farmName}"? This action
-                                            cannot be undone and will remove all associated data.
-                                          </AlertDialogDescription>
-                                        </AlertDialogHeader>
-                                        <AlertDialogFooter>
-                                          <AlertDialogCancel>Cancel</AlertDialogCancel>
-                                          <AlertDialogAction
-                                            onClick={() => handleDeleteFarm(farm.id)}
-                                            className="bg-red-600 hover:bg-red-700"
+                                  <DropdownMenu>
+                                    <DropdownMenuTrigger asChild>
+                                      <Button variant="ghost" size="sm">
+                                        <MoreHorizontal className="w-4 h-4" />
+                                      </Button>
+                                    </DropdownMenuTrigger>
+                                    <DropdownMenuContent align="end">
+                                      <DropdownMenuItem asChild>
+                                        <Link href={`/farms/${farm.id}`}>
+                                          <Eye className="w-4 h-4 mr-2" />
+                                          View Details
+                                        </Link>
+                                      </DropdownMenuItem>
+                                      <DropdownMenuItem asChild>
+                                        <Link href={`/farms/${farm.id}/edit`}>
+                                          <Edit className="w-4 h-4 mr-2" />
+                                          Edit Farm
+                                        </Link>
+                                      </DropdownMenuItem>
+                                      <AlertDialog>
+                                        <AlertDialogTrigger asChild>
+                                          <DropdownMenuItem
+                                            className="text-red-600"
+                                            onSelect={(e) => e.preventDefault()}
                                           >
+                                            <Trash2 className="w-4 h-4 mr-2" />
                                             Delete Farm
-                                          </AlertDialogAction>
-                                        </AlertDialogFooter>
-                                      </AlertDialogContent>
-                                    </AlertDialog>
-                                  </DropdownMenuContent>
-                                </DropdownMenu>
-                              </div>
-                            </CardHeader>
-                            <CardContent className="space-y-4">
-                              {/* Location and Size */}
-                              <div className="grid grid-cols-2 gap-4">
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <MapPin className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Location</span>
+                                          </DropdownMenuItem>
+                                        </AlertDialogTrigger>
+                                        <AlertDialogContent>
+                                          <AlertDialogHeader>
+                                            <AlertDialogTitle>Delete Farm</AlertDialogTitle>
+                                            <AlertDialogDescription>
+                                              Are you sure you want to delete "{farm.farmName}"? This action
+                                              cannot be undone and will remove all associated data.
+                                            </AlertDialogDescription>
+                                          </AlertDialogHeader>
+                                          <AlertDialogFooter>
+                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                            <AlertDialogAction
+                                              onClick={() => handleDeleteFarm(farm.id)}
+                                              className="bg-red-600 hover:bg-red-700"
+                                            >
+                                              Delete Farm
+                                            </AlertDialogAction>
+                                          </AlertDialogFooter>
+                                        </AlertDialogContent>
+                                      </AlertDialog>
+                                    </DropdownMenuContent>
+                                  </DropdownMenu>
+                                </div>
+                              </CardHeader>
+                              <CardContent className="space-y-4">
+                                {/* Location and Size */}
+                                <div className="grid grid-cols-2 gap-4">
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                                      <span className="text-muted-foreground">Location</span>
+                                    </div>
+                                    <p className="text-sm font-medium">{farm.location}</p>
                                   </div>
-                                  <p className="text-sm font-medium">{farm.location}</p>
-                                </div>
-                                <div className="space-y-1">
-                                  <div className="flex items-center gap-2 text-sm">
-                                    <Building2 className="w-4 h-4 text-muted-foreground" />
-                                    <span className="text-muted-foreground">Size</span>
+                                  <div className="space-y-1">
+                                    <div className="flex items-center gap-2 text-sm">
+                                      <Building2 className="w-4 h-4 text-muted-foreground" />
+                                      <span className="text-muted-foreground">Size</span>
+                                    </div>
+                                    <p className="text-sm font-medium">{farm.totalArea} ha</p>
                                   </div>
-                                  <p className="text-sm font-medium">{farm.totalArea} ha</p>
                                 </div>
-                              </div>
 
-                              {/* Crops */}
-                              <div className="space-y-2">
-                                <span className="text-sm text-muted-foreground">Crops</span>
-                                <div className="flex flex-wrap gap-1">
-                                  {farm.cropTypes?.slice(0, 3).map((crop) => (
-                                    <Badge key={crop} variant="secondary" className="text-xs">
-                                      {crop}
-                                    </Badge>
-                                  ))}
-                                  {farm.cropTypes?.length > 3 && (
-                                    <Badge variant="secondary" className="text-xs">
-                                      +{farm.cropTypes.length - 3}
-                                    </Badge>
-                                  )}
+                                {/* Crops */}
+                                <div className="space-y-2">
+                                  <span className="text-sm text-muted-foreground">Crops</span>
+                                  <div className="flex flex-wrap gap-1">
+                                    {farm.cropTypes?.slice(0, 3).map((crop) => (
+                                      <Badge key={crop} variant="secondary" className="text-xs">
+                                        {crop}
+                                      </Badge>
+                                    ))}
+                                    {farm.cropTypes?.length > 3 && (
+                                      <Badge variant="secondary" className="text-xs">
+                                        +{farm.cropTypes.length - 3}
+                                      </Badge>
+                                    )}
+                                  </div>
                                 </div>
-                              </div>
 
-                              {/* Status and Certification */}
-                              <div className="flex items-center justify-between">
-                                <div className="space-y-1">
-                                  <span className="text-sm text-muted-foreground">Status</span>
-                                  <div>
+                                {/* Status and Certification */}
+                                <div className="flex items-center justify-between">
+                                  <div className="space-y-1">
+                                    <span className="text-sm text-muted-foreground">Status</span>
+                                    <div>
+                                      <Badge className={getStatusBadge(farm.status || 'active')}>
+                                        {farm.status || 'active'}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                  <div className="space-y-1 text-right">
+                                    <span className="text-sm text-muted-foreground">Certification</span>
+                                    <div>
+                                      <Badge className={getCertificationBadge(farm.certificationStatus)}>
+                                        {farm.certificationStatus}
+                                      </Badge>
+                                    </div>
+                                  </div>
+                                </div>
+
+                                {/* Registration Date */}
+                                <div className="pt-2 border-t">
+                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                    <Calendar className="w-4 h-4" />
+                                    Organic since {new Date(farm.organicSince).toLocaleDateString()}
+                                  </div>
+                                </div>
+                              </CardContent>
+                            </Card>
+                          ))}
+                        </div>
+                      ) : (
+                        /* Table View */
+                        <div className="overflow-x-auto">
+                          <Table>
+                            <TableHeader style={{ backgroundColor: '#CBDDE9' }}>
+                              <TableRow className="border-b-2 border-gray-200" style={{ backgroundColor: '#CBDDE9' }}>
+                                <TableHead className="w-[100px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>#</TableHead>
+                                <TableHead className="w-[180px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>Farm Name</TableHead>
+                                <TableHead className="w-[150px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>Farmer</TableHead>
+                                <TableHead className="w-[200px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>Location</TableHead>
+                                <TableHead className="w-[100px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>Size (ha)</TableHead>
+                                <TableHead className="w-[160px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>Crops</TableHead>
+                                <TableHead className="w-[100px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>Status</TableHead>
+                                <TableHead className="w-[140px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>Certification</TableHead>
+                                <TableHead className="w-[130px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>Organic Since</TableHead>
+                                <TableHead className="w-[150px] text-right font-semibold text-gray-900 py-4 px-6 last:border-r-0" style={{ backgroundColor: '#CBDDE9' }}>Actions</TableHead>
+                              </TableRow>
+                            </TableHeader>
+                            <TableBody>
+                              {paginatedFarms.map((farm, index) => (
+                                <TableRow key={farm.id}>
+                                  <TableCell className="font-medium">
+                                    {currentPage * ITEMS_PER_PAGE + index + 1}
+                                  </TableCell>
+                                  <TableCell className="font-medium">{farm.farmName}</TableCell>
+                                  <TableCell>{farm.farmerName || `Farmer #${farm.farmerId}`}</TableCell>
+                                  <TableCell>{farm.location}</TableCell>
+                                  <TableCell>{farm.totalArea}</TableCell>
+                                  <TableCell>
+                                    <div className="flex flex-wrap gap-1">
+                                      {farm.cropTypes?.slice(0, 2).map((crop) => (
+                                        <Badge key={crop} variant="secondary" className="text-xs">
+                                          {crop}
+                                        </Badge>
+                                      ))}
+                                      {farm.cropTypes?.length > 2 && (
+                                        <Badge variant="secondary" className="text-xs">
+                                          +{farm.cropTypes.length - 2}
+                                        </Badge>
+                                      )}
+                                    </div>
+                                  </TableCell>
+                                  <TableCell>
                                     <Badge className={getStatusBadge(farm.status || 'active')}>
                                       {farm.status || 'active'}
                                     </Badge>
-                                  </div>
-                                </div>
-                                <div className="space-y-1 text-right">
-                                  <span className="text-sm text-muted-foreground">Certification</span>
-                                  <div>
+                                  </TableCell>
+                                  <TableCell>
                                     <Badge className={getCertificationBadge(farm.certificationStatus)}>
                                       {farm.certificationStatus}
                                     </Badge>
-                                  </div>
-                                </div>
-                              </div>
-
-                              {/* Registration Date */}
-                              <div className="pt-2 border-t">
-                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                  <Calendar className="w-4 h-4" />
-                                  Organic since {new Date(farm.organicSince).toLocaleDateString()}
-                                </div>
-                              </div>
-                            </CardContent>
-                          </Card>
-                        ))}
-                      </div>
+                                  </TableCell>
+                                  <TableCell>
+                                    {new Date(farm.organicSince).toLocaleDateString()}
+                                  </TableCell>
+                                  <TableCell className="text-right">
+                                    <DropdownMenu>
+                                      <DropdownMenuTrigger asChild>
+                                        <Button variant="ghost" size="sm">
+                                          <MoreHorizontal className="w-4 h-4" />
+                                        </Button>
+                                      </DropdownMenuTrigger>
+                                      <DropdownMenuContent align="end">
+                                        <DropdownMenuItem asChild>
+                                          <Link href={`/farms/${farm.id}`}>
+                                            <Eye className="w-4 h-4 mr-2" />
+                                            View Details
+                                          </Link>
+                                        </DropdownMenuItem>
+                                        <DropdownMenuItem asChild>
+                                          <Link href={`/farms/${farm.id}/edit`}>
+                                            <Edit className="w-4 h-4 mr-2" />
+                                            Edit Farm
+                                          </Link>
+                                        </DropdownMenuItem>
+                                        <AlertDialog>
+                                          <AlertDialogTrigger asChild>
+                                            <DropdownMenuItem
+                                              className="text-red-600"
+                                              onSelect={(e) => e.preventDefault()}
+                                            >
+                                              <Trash2 className="w-4 h-4 mr-2" />
+                                              Delete Farm
+                                            </DropdownMenuItem>
+                                          </AlertDialogTrigger>
+                                          <AlertDialogContent>
+                                            <AlertDialogHeader>
+                                              <AlertDialogTitle>Delete Farm</AlertDialogTitle>
+                                              <AlertDialogDescription>
+                                                Are you sure you want to delete "{farm.farmName}"? This action
+                                                cannot be undone and will remove all associated data.
+                                              </AlertDialogDescription>
+                                            </AlertDialogHeader>
+                                            <AlertDialogFooter>
+                                              <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                              <AlertDialogAction
+                                                onClick={() => handleDeleteFarm(farm.id)}
+                                                className="bg-red-600 hover:bg-red-700"
+                                              >
+                                                Delete Farm
+                                              </AlertDialogAction>
+                                            </AlertDialogFooter>
+                                          </AlertDialogContent>
+                                        </AlertDialog>
+                                      </DropdownMenuContent>
+                                    </DropdownMenu>
+                                  </TableCell>
+                                </TableRow>
+                              ))}
+                            </TableBody>
+                          </Table>
+                        </div>
+                      )}
 
                       {/* Pagination */}
                       {totalPages > 1 && (

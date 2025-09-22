@@ -1,7 +1,6 @@
 "use client"
 
-import type React from "react"
-
+import React from "react"
 import { Sidebar } from "@/components/layout/sidebar"
 import { Navbar } from "@/components/layout/navbar"
 import { Footer } from "@/components/layout/footer"
@@ -14,6 +13,7 @@ import { Checkbox } from "@/components/ui/checkbox"
 import { ArrowLeft, Award } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
+import { API_ENDPOINTS } from "@/lib/config"
 
 export default function NewCertificatePage() {
   const [formData, setFormData] = useState({
@@ -27,35 +27,31 @@ export default function NewCertificatePage() {
   const [loading, setLoading] = useState(true)
   const [isSubmitting, setIsSubmitting] = useState(false)
 
-  // Fetch farmers and farms data
   useEffect(() => {
-    const fetchData = async () => {
+    async function loadData() {
       try {
-        const [farmersRes, farmsRes] = await Promise.all([
-          fetch('http://localhost:3002/api/farmers'),
-          fetch('http://localhost:3002/api/farms')
-        ])
+        const farmersResponse = await fetch('/api/farmers')
+        const farmsResponse = await fetch('/api/farms')
 
-        if (farmersRes.ok) {
-          const farmersData = await farmersRes.json()
-          setFarmers(Array.isArray(farmersData) ? farmersData : [])
+        if (farmersResponse.ok) {
+          const farmersData = await farmersResponse.json()
+          setFarmers(farmersData || [])
         }
 
-        if (farmsRes.ok) {
-          const farmsData = await farmsRes.json()
-          setFarms(Array.isArray(farmsData) ? farmsData : [])
+        if (farmsResponse.ok) {
+          const farmsData = await farmsResponse.json()
+          setFarms(farmsData || [])
         }
       } catch (error) {
-        console.error('Error fetching data:', error)
-      } finally {
-        setLoading(false)
+        // Handle error silently
       }
+      setLoading(false)
     }
 
-    fetchData()
+    loadData()
   }, [])
 
-  const selectedFarm = farms.find((f) => f.id.toString() === formData.farmId)
+  const selectedFarm = farms.find((f: any) => f.id.toString() === formData.farmId)
 
   const availableCrops = [
     "Tomatoes",
@@ -69,15 +65,15 @@ export default function NewCertificatePage() {
     "Soybeans",
   ]
 
-  const handleCropToggle = (crop: string, checked: boolean) => {
-    if (checked) {
-      setFormData({ ...formData, cropTypes: [...formData.cropTypes, crop] })
-    } else {
-      setFormData({ ...formData, cropTypes: formData.cropTypes.filter((c) => c !== crop) })
-    }
+  function handleCropToggle(crop: string, checked: boolean) {
+    const newCropTypes = checked
+      ? [...formData.cropTypes, crop]
+      : formData.cropTypes.filter((c: string) => c !== crop)
+
+    setFormData({ ...formData, cropTypes: newCropTypes })
   }
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
 
     if (!selectedFarm) {
@@ -98,17 +94,10 @@ export default function NewCertificatePage() {
     try {
       setIsSubmitting(true)
 
-      const response = await fetch('/api/certificates', {
+      const response = await fetch(`/api/${API_ENDPOINTS.CERTIFICATES.CREATE}`, {
         method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          farmId: formData.farmId,
-          issueDate: formData.issueDate,
-          expiryDate: formData.expiryDate,
-          cropTypes: formData.cropTypes,
-        }),
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(formData)
       })
 
       if (!response.ok) {
@@ -117,27 +106,21 @@ export default function NewCertificatePage() {
       }
 
       const certificate = await response.json()
-
-      // Show success message
-      const certNumber = certificate.certificateNumber || certificate.certificate_number || 'Unknown'
+      const certNumber = certificate.certificateNumber || 'Unknown'
       alert(`Certificate ${certNumber} created successfully!`)
 
-      // Redirect to certificates page or certificate detail
       window.location.href = '/certificates'
 
     } catch (error) {
-      console.error('Error creating certificate:', error)
       alert(`Failed to create certificate: ${error instanceof Error ? error.message : 'Unknown error'}`)
     } finally {
       setIsSubmitting(false)
     }
   }
 
-  const generateCertificateNumber = () => {
+  function generateCertificateNumber() {
     const year = new Date().getFullYear()
-    const random = Math.floor(Math.random() * 1000)
-      .toString()
-      .padStart(3, "0")
+    const random = Math.floor(Math.random() * 1000).toString().padStart(3, '0')
     return `ORG-${year}-${random}`
   }
 
@@ -187,14 +170,14 @@ export default function NewCertificatePage() {
                           {loading ? (
                             <SelectItem value="loading" disabled>Loading farms...</SelectItem>
                           ) : farms.length === 0 ? (
-                            <SelectItem value="no-farms" disabled>No approved farms available</SelectItem>
+                            <SelectItem value="no-farms" disabled>No farms available</SelectItem>
                           ) : (
                             farms
                               .filter((farm) => farm.certificationStatus === "pending")
-                              .map((farm) => {
+                              .map((farm: any) => {
                                 return (
                                   <SelectItem key={farm.id} value={farm.id.toString()}>
-                                    {farm.farmName} - {farm.farmerName || 'Unknown Farmer'}
+                                    {farm.farmName} - {farm.farmerName || '-'}
                                   </SelectItem>
                                 )
                               })
@@ -330,7 +313,7 @@ export default function NewCertificatePage() {
                           <div>
                             <Label className="text-sm font-medium">Certified Crops</Label>
                             <div className="flex flex-wrap gap-1 mt-1">
-                              {formData.cropTypes.map((crop) => (
+                              {formData.cropTypes.map((crop: string) => (
                                 <span key={crop} className="px-2 py-1 bg-primary/10 text-primary text-xs rounded">
                                   {crop}
                                 </span>

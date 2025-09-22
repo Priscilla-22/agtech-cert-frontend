@@ -1,31 +1,24 @@
-import { NextRequest, NextResponse } from 'next/server'
+import { NextRequest, NextResponse } from "next/server"
+import { fetchFarmById, updateFarm, deleteFarm } from "@/lib/services/farm-service"
 
 interface Params {
   id: string
 }
 
 export async function GET(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Params }
 ) {
   try {
-    const response = await fetch(`http://localhost:3002/api/farms/${params.id}`)
-    
-    if (!response.ok) {
-      return NextResponse.json(
-        { error: 'Farm not found' },
-        { status: response.status }
-      )
+    const farm = await fetchFarmById(params.id)
+
+    if (!farm) {
+      return NextResponse.json({ error: "Farm not found" }, { status: 404 })
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
-  } catch (error) {
-    console.error('Farm fetch error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json(farm)
+  } catch {
+    return NextResponse.json({ error: "Failed to fetch farm" }, { status: 500 })
   }
 }
 
@@ -35,57 +28,31 @@ export async function PUT(
 ) {
   try {
     const body = await request.json()
+    const farm = await updateFarm(params.id, body)
 
-    const response = await fetch(`http://localhost:3002/api/farms/${params.id}`, {
-      method: 'PUT',
-      headers: {
-        'Content-Type': 'application/json',
-      },
-      body: JSON.stringify(body),
-    })
-
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      return NextResponse.json(
-        { error: errorData.error || 'Failed to update farm' },
-        { status: response.status }
-      )
+    if (!farm) {
+      return NextResponse.json({ error: "Failed to update farm" }, { status: 400 })
     }
 
-    const data = await response.json()
-    return NextResponse.json(data)
-  } catch (error) {
-    console.error('Farm update error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json(farm)
+  } catch {
+    return NextResponse.json({ error: "Failed to update farm" }, { status: 500 })
   }
 }
 
 export async function DELETE(
-  request: NextRequest,
+  _request: NextRequest,
   { params }: { params: Params }
 ) {
   try {
-    const response = await fetch(`http://localhost:3002/api/farms/${params.id}`, {
-      method: 'DELETE',
-    })
+    const result = await deleteFarm(params.id)
 
-    if (!response.ok) {
-      const errorData = await response.json().catch(() => ({}))
-      return NextResponse.json(
-        { error: errorData.error || 'Failed to delete farm' },
-        { status: response.status }
-      )
+    if (!result.success) {
+      return NextResponse.json({ error: "Failed to delete farm" }, { status: 400 })
     }
 
-    return NextResponse.json({ success: true })
-  } catch (error) {
-    console.error('Farm deletion error:', error)
-    return NextResponse.json(
-      { error: 'Internal server error' },
-      { status: 500 }
-    )
+    return NextResponse.json(result)
+  } catch {
+    return NextResponse.json({ error: "Failed to delete farm" }, { status: 500 })
   }
 }

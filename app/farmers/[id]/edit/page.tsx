@@ -63,7 +63,7 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
     status: 'active'
   })
 
-  // Fetch farmer data
+
   useEffect(() => {
     const fetchFarmer = async () => {
       try {
@@ -126,7 +126,6 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
     try {
       await api.farmers.update(params.id, formData)
 
-      // Success - redirect back to farmer details
       router.push(`/farmers/${params.id}`)
 
     } catch (error) {

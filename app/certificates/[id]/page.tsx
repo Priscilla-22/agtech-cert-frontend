@@ -12,6 +12,7 @@ import Link from "next/link"
 import { notFound } from "next/navigation"
 import { CertificatePreview } from "@/components/certificate/certificate-preview"
 import { useEffect, useState } from "react"
+import { API_ENDPOINTS } from "@/lib/config"
 
 interface CertificateDetailPageProps {
   params: { id: string }
@@ -25,7 +26,7 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
   useEffect(() => {
     const fetchCertificate = async () => {
       try {
-        const response = await fetch(`http://localhost:3002/api/certificates/${params.id}`)
+        const response = await fetch(`/api/${API_ENDPOINTS.CERTIFICATES.DETAIL(params.id)}`)
 
         if (!response.ok) {
           if (response.status === 404) {
@@ -100,7 +101,7 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
                 onClick={() => {
                   // Create a download link for the PDF
                   const link = document.createElement('a')
-                  link.href = `http://localhost:3002/api/certificates/${certificate.id}/pdf`
+                  link.href = `/api/${API_ENDPOINTS.CERTIFICATES.PDF(certificate.id)}`
                   link.download = `certificate-${certificate.certificateNumber}.pdf`
                   link.target = '_blank'
                   link.click()
@@ -138,14 +139,14 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
                   <div className="flex items-center gap-3">
                     <User className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">{certificate.farmer?.name || certificate.farmerName || 'N/A'}</p>
+                      <p className="font-medium">{certificate.farmer?.name || certificate.farmerName || '-'}</p>
                       <p className="text-xs text-muted-foreground">Farmer</p>
                     </div>
                   </div>
                   <div className="flex items-center gap-3">
                     <Building2 className="h-4 w-4 text-muted-foreground" />
                     <div>
-                      <p className="font-medium">{certificate.farm?.farmName || certificate.farmName || 'N/A'}</p>
+                      <p className="font-medium">{certificate.farm?.farmName || certificate.farmName || '-'}</p>
                       <p className="text-xs text-muted-foreground">Farm</p>
                     </div>
                   </div>
@@ -178,7 +179,7 @@ export default function CertificateDetailPage({ params }: CertificateDetailPageP
                 <CardContent>
                   <div className="flex flex-wrap gap-2">
                     {certificate.cropTypes && Array.isArray(certificate.cropTypes) && certificate.cropTypes.length > 0 ? (
-                      certificate.cropTypes.map((crop) => (
+                      certificate.cropTypes.map((crop: string) => (
                         <Badge key={crop} variant="secondary">
                           {crop}
                         </Badge>

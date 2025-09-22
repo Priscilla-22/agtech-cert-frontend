@@ -21,16 +21,13 @@ import { useState } from "react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
-import { api } from "@/lib/api-client"
+import { createFarmer } from "@/lib/services/farmer-service"
+import { FarmerFormData, FormStep, FormErrors } from "@/lib/types/farmer-form"
+import { PersonalInfoStep } from "@/components/forms/farmer/personal-info-step"
+import { FarmingBackgroundStep } from "@/components/forms/farmer/farming-background-step"
 
-// Generate unique 5-character member number for preview
-const generateMemberNumber = () => {
-  const timestamp = Date.now().toString(36).slice(-3).toUpperCase();
-  const random = Math.random().toString(36).substr(2, 2).toUpperCase();
-  return `${timestamp}${random}`;
-};
 
-const STEPS = [
+const FORM_STEPS: FormStep[] = [
   {
     id: 1,
     title: "Personal & Contact",
@@ -74,62 +71,50 @@ function NewFarmerContent() {
   const [currentStep, setCurrentStep] = useState(1)
   const [completedSteps, setCompletedSteps] = useState<number[]>([])
   const [isSubmitting, setIsSubmitting] = useState(false)
-  const [memberNumber] = useState(generateMemberNumber()) // Generate once when component mounts
-  const [formData, setFormData] = useState({
-    // Step 1: Personal & Contact Info
+  const [formData, setFormData] = useState<FarmerFormData>({
     name: "",
     email: "",
     phone: "",
     alternatePhone: "",
     idNumber: "",
     dateOfBirth: "",
-
-    // Step 2: Location & Address
     county: "",
     subCounty: "",
     ward: "",
     village: "",
     address: "",
     gpsCoordinates: "",
-
-    // Step 3: Farming Background
     yearsInFarming: "",
     educationLevel: "",
     agriculturalTraining: "",
-    primaryCrops: [] as string[],
+    primaryCrops: [],
     farmingType: "",
-
-    // Step 4: Farm Details
     totalLandSize: "",
     ownedLandSize: "",
     leasedLandSize: "",
     landTenure: "",
     soilType: "",
-    waterSources: [] as string[],
+    waterSources: [],
     irrigationMethod: "",
-
-    // Step 5: Certification Info
     previousCertification: "",
     certificationBodies: "",
     transitionStartDate: "",
     organicExperience: "",
     motivationForOrganic: "",
-
-    // System fields
     status: "active",
-    notes: "",
+    notes: ""
   })
 
-  const [errors, setErrors] = useState<Record<string, string>>({})
+  const [errors, setErrors] = useState<FormErrors>({})
 
-  const validateStep = (step: number) => {
-    const stepConfig = STEPS.find(s => s.id === step)
+  function validateStep(step: number): boolean {
+    const stepConfig = FORM_STEPS.find(s => s.id === step)
     if (!stepConfig) return true
 
-    const newErrors: Record<string, string> = {}
+    const newErrors: FormErrors = {}
 
     stepConfig.fields.forEach(field => {
-      const value = formData[field as keyof typeof formData]
+      const value = formData[field as keyof FarmerFormData]
       if (!value || (Array.isArray(value) && value.length === 0)) {
         newErrors[field] = `${field.charAt(0).toUpperCase() + field.slice(1).replace(/([A-Z])/g, ' $1')} is required`
       }
@@ -144,7 +129,7 @@ function NewFarmerContent() {
       if (!completedSteps.includes(currentStep)) {
         setCompletedSteps([...completedSteps, currentStep])
       }
-      if (currentStep < STEPS.length) {
+      if (currentStep < FORM_STEPS.length) {
         setCurrentStep(currentStep + 1)
       }
     }
@@ -193,25 +178,19 @@ function NewFarmerContent() {
     setIsSubmitting(true)
 
     try {
-      const responseData = await api.farmers.create(formData)
+      await createFarmer(formData)
 
-      // Success - API client only returns data on success
-      // Success toast
       toast({
-        title: "✅ Farmer Registered Successfully!",
+        title: "Farmer Registered Successfully!",
         description: `${formData.name} has been added to the system and is ready for certification tracking.`
       })
 
-      // Navigate to farmers page after short delay
       setTimeout(() => {
         router.push('/farmers')
       }, 1500)
     } catch (error) {
-      console.error('Error creating farmer:', error)
-      
-      // Handle API client errors with user-friendly messages
       const errorMessage = error instanceof Error ? error.message : "Unable to connect to the server. Please check your connection and try again."
-      
+
       toast({
         variant: "destructive",
         title: "Registration Failed",
@@ -222,114 +201,18 @@ function NewFarmerContent() {
     }
   }
 
-  const progress = ((currentStep - 1) / (STEPS.length - 1)) * 100
-  const currentStepConfig = STEPS.find(s => s.id === currentStep)
+  const progress = ((currentStep - 1) / (FORM_STEPS.length - 1)) * 100
+  const currentStepConfig = FORM_STEPS.find(s => s.id === currentStep)
 
-  const renderStepContent = () => {
+  function renderStepContent() {
     switch (currentStep) {
       case 1:
         return (
-          <div className="space-y-8 ">
-            {/* Member Number Section */}
-            <div className="inline-flex items-center gap-2 mb-6 px-3 py-2 rounded-md" style={{ backgroundColor: '#f4a261', border: '1px solid #e8ddc7' }}>
-              <span className="text-xs font-medium" style={{ color: '#8b7355' }}>Member ID:</span>
-              <span className="font-mono text-sm font-bold" style={{ color: '#6b5843' }}>{memberNumber}</span>
-            </div>
-
-            {/* Personal Information Section */}
-            <div className="space-y-6">
-              <div className="pb-3 border-b border-green-100">
-                <h3 className="text-lg font-semibold">Personal Information</h3>
-                <p className="text-sm text-muted-foreground">Enter your basic personal details</p>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-3">
-                  <Label htmlFor="name" className="font-medium">Full Name *</Label>
-                  <Input
-                    id="name"
-                    value={formData.name}
-                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                    placeholder="John Doe Mwangi"
-                    className={errors.name ? "border-red-500 border-2" : ""}
-                  />
-                  {errors.name && <p className="text-sm text-red-500">{errors.name}</p>}
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="idNumber" className="font-medium">National ID Number *</Label>
-                  <Input
-                    id="idNumber"
-                    value={formData.idNumber}
-                    onChange={(e) => setFormData({ ...formData, idNumber: e.target.value })}
-                    placeholder="12345678"
-                    className={errors.idNumber ? "border-red-500 border-2" : ""}
-                  />
-                  {errors.idNumber && <p className="text-sm text-red-500">{errors.idNumber}</p>}
-                </div>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-3">
-                  <Label htmlFor="email" className="font-medium">Email Address *</Label>
-                  <Input
-                    id="email"
-                    type="email"
-                    value={formData.email}
-                    onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-                    placeholder="farmer@example.com"
-                    className={errors.email ? "border-red-500 border-2" : ""}
-                  />
-                  {errors.email && <p className="text-sm text-red-500">{errors.email}</p>}
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="dateOfBirth" className="font-medium">Date of Birth *</Label>
-                  <Input
-                    id="dateOfBirth"
-                    type="date"
-                    value={formData.dateOfBirth}
-                    onChange={(e) => setFormData({ ...formData, dateOfBirth: e.target.value })}
-                    className={errors.dateOfBirth ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}
-                  />
-                  {errors.dateOfBirth && <p className="text-sm text-red-500">{errors.dateOfBirth}</p>}
-                </div>
-              </div>
-            </div>
-
-            {/* Contact Information Section */}
-            <div className="space-y-6">
-              <div className="pb-3 border-b border-green-100">
-                <h3 className="text-lg font-semibold">Contact Information</h3>
-                <p className="text-sm text-muted-foreground">Phone numbers for communication</p>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-3">
-                  <Label htmlFor="phone" className="font-medium">Primary Phone Number *</Label>
-                  <Input
-                    id="phone"
-                    value={formData.phone}
-                    onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                    placeholder="+254 700 123 456"
-                    className={errors.phone ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}
-                  />
-                  {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="alternatePhone" className="font-medium">Alternate Phone</Label>
-                  <Input
-                    id="alternatePhone"
-                    value={formData.alternatePhone}
-                    onChange={(e) => setFormData({ ...formData, alternatePhone: e.target.value })}
-                    placeholder="+254 722 987 654"
-                    className="border-green-200 focus:border-green-400 focus:ring-green-200"
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
+          <PersonalInfoStep
+            formData={formData}
+            setFormData={setFormData}
+            errors={errors}
+          />
         )
 
       case 2:
@@ -432,117 +315,11 @@ function NewFarmerContent() {
 
       case 3:
         return (
-          <div className="space-y-8">
-            {/* Experience Section */}
-            <div className="space-y-6">
-              <div className="pb-3 border-b border-green-100">
-                <h3 className="text-lg font-semibold">Farming Experience</h3>
-                <p className="text-sm text-muted-foreground">Your agricultural background and education</p>
-              </div>
-
-              <div className="grid gap-6 md:grid-cols-2">
-                <div className="space-y-3">
-                  <Label htmlFor="yearsInFarming" className="font-medium">Years in Farming *</Label>
-                  <Select
-                    value={formData.yearsInFarming}
-                    onValueChange={(value) => setFormData({ ...formData, yearsInFarming: value })}
-                  >
-                    <SelectTrigger className={errors.yearsInFarming ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}>
-                      <SelectValue placeholder="Select experience" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="0-2">0-2 years</SelectItem>
-                      <SelectItem value="3-5">3-5 years</SelectItem>
-                      <SelectItem value="6-10">6-10 years</SelectItem>
-                      <SelectItem value="11-20">11-20 years</SelectItem>
-                      <SelectItem value="20+">20+ years</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.yearsInFarming && <p className="text-sm text-red-500">{errors.yearsInFarming}</p>}
-                </div>
-
-                <div className="space-y-3">
-                  <Label htmlFor="educationLevel" className="font-medium">Education Level *</Label>
-                  <Select
-                    value={formData.educationLevel}
-                    onValueChange={(value) => setFormData({ ...formData, educationLevel: value })}
-                  >
-                    <SelectTrigger className={errors.educationLevel ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}>
-                      <SelectValue placeholder="Select education level" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="primary">Primary Education</SelectItem>
-                      <SelectItem value="secondary">Secondary Education</SelectItem>
-                      <SelectItem value="diploma">Diploma</SelectItem>
-                      <SelectItem value="degree">Bachelor's Degree</SelectItem>
-                      <SelectItem value="masters">Master's Degree</SelectItem>
-                      <SelectItem value="other">Other</SelectItem>
-                    </SelectContent>
-                  </Select>
-                  {errors.educationLevel && <p className="text-sm text-red-500">{errors.educationLevel}</p>}
-                </div>
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="farmingType" className="font-medium">Farming Type *</Label>
-                <Select
-                  value={formData.farmingType}
-                  onValueChange={(value) => setFormData({ ...formData, farmingType: value })}
-                >
-                  <SelectTrigger className={errors.farmingType ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}>
-                    <SelectValue placeholder="Select farming type" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="subsistence">Subsistence Farming</SelectItem>
-                    <SelectItem value="commercial">Commercial Farming</SelectItem>
-                    <SelectItem value="mixed">Mixed Farming (Crops + Livestock)</SelectItem>
-                    <SelectItem value="organic-transition">Transitioning to Organic</SelectItem>
-                    <SelectItem value="organic-certified">Already Organic Certified</SelectItem>
-                  </SelectContent>
-                </Select>
-                {errors.farmingType && <p className="text-sm text-red-500">{errors.farmingType}</p>}
-              </div>
-            </div>
-
-            {/* Crops Section */}
-            <div className="space-y-6">
-              <div className="pb-3 border-b border-green-100">
-                <h3 className="text-lg font-semibold">Crop Information</h3>
-                <p className="text-sm text-muted-foreground">What crops do you grow?</p>
-              </div>
-
-              <div className="space-y-4">
-                <Label className="font-medium">Primary Crops Grown *</Label>
-                <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-green-100 rounded-lg bg-green-50/30">
-                  {['Maize', 'Beans', 'Coffee', 'Tea', 'Bananas', 'Tomatoes', 'Potatoes', 'Onions', 'Cabbages', 'Carrots', 'Spinach', 'Kale'].map((crop) => (
-                    <div key={crop} className="flex items-center space-x-3 p-2 rounded">
-                      <Checkbox
-                        id={crop}
-                        checked={formData.primaryCrops.includes(crop)}
-                        onCheckedChange={(checked) => handleCropChange(crop, checked as boolean)}
-                        className="border-green-300 data-[state=checked]:bg-green-600 data-[state=checked]:border-green-600"
-                      />
-                      <label htmlFor={crop} className="text-sm cursor-pointer">{crop}</label>
-                    </div>
-                  ))}
-                </div>
-                {errors.primaryCrops && <p className="text-sm text-red-500">{errors.primaryCrops}</p>}
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="agriculturalTraining" className="font-medium">Agricultural Training/Certifications</Label>
-                <Textarea
-                  id="agriculturalTraining"
-                  value={formData.agriculturalTraining}
-                  onChange={(e) => setFormData({ ...formData, agriculturalTraining: e.target.value })}
-                  placeholder="List any agricultural training, courses, or certifications received"
-                  rows={3}
-                  className="border-green-200 focus:border-green-400 focus:ring-green-200"
-                />
-                <p className="text-xs text-muted-foreground">Include any formal agricultural training, workshops, or certifications</p>
-              </div>
-            </div>
-          </div>
+          <FarmingBackgroundStep
+            formData={formData}
+            setFormData={setFormData}
+            errors={errors}
+          />
         )
 
       case 4:
@@ -812,7 +589,7 @@ function NewFarmerContent() {
                 <div className="space-y-3">
                   <h5 className="font-medium mb-2 border-b border-green-200 pb-1">Personal Information</h5>
                   <div className="space-y-1">
-                    <p><strong>Member ID:</strong> <span className="font-mono font-semibold" style={{ color: '#6b5843' }}>{memberNumber}</span></p>
+                    <p><strong>Member ID:</strong> <span className="text-muted-foreground">Will be generated upon registration</span></p>
                     <p><strong>Name:</strong> {formData.name}</p>
                     <p><strong>Email:</strong> {formData.email}</p>
                     <p><strong>Phone:</strong> {formData.phone}</p>
@@ -890,7 +667,7 @@ function NewFarmerContent() {
               <CardHeader>
                 <div className="flex items-center justify-between mb-4">
                   <div>
-                    <CardTitle>Step {currentStep} of {STEPS.length}</CardTitle>
+                    <CardTitle>Step {currentStep} of {FORM_STEPS.length}</CardTitle>
                     <CardDescription>{currentStepConfig?.title}: {currentStepConfig?.description}</CardDescription>
                   </div>
                   <div className="text-right">
@@ -903,7 +680,7 @@ function NewFarmerContent() {
                 {/* Step indicators */}
 
                 <div className="flex items-center justify-between mb-24">
-                  {STEPS.map((step) => {
+                  {FORM_STEPS.map((step) => {
                     const Icon = step.icon
                     const isCompleted = completedSteps.includes(step.id)
                     const isCurrent = currentStep === step.id
@@ -957,7 +734,7 @@ function NewFarmerContent() {
                       Previous
                     </Button>
 
-                    {currentStep < STEPS.length ? (
+                    {currentStep < FORM_STEPS.length ? (
                       <Button
                         type="button"
                         onClick={handleNext}

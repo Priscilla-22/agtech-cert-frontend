@@ -1,8 +1,8 @@
-import { API_BASE_URL } from '@/lib/config'
+import { API_CONFIG } from '@/lib/config'
 
 export const get = async (endpoint: string, options?: RequestInit): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'GET',
       ...options,
     })
@@ -14,7 +14,7 @@ export const get = async (endpoint: string, options?: RequestInit): Promise<any>
 
 export const post = async (endpoint: string, data: any, options?: RequestInit): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -28,7 +28,7 @@ export const post = async (endpoint: string, data: any, options?: RequestInit): 
 
 export const put = async (endpoint: string, data: any, options?: RequestInit): Promise<any> => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'PUT',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(data),
@@ -42,7 +42,7 @@ export const put = async (endpoint: string, data: any, options?: RequestInit): P
 
 export const del = async (endpoint: string, options?: RequestInit): Promise<boolean> => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'DELETE',
       ...options,
     })
@@ -54,7 +54,7 @@ export const del = async (endpoint: string, options?: RequestInit): Promise<bool
 
 export const getList = async (endpoint: string, options?: RequestInit): Promise<any[]> => {
   try {
-    const response = await fetch(`${API_BASE_URL}${endpoint}`, {
+    const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'GET',
       cache: 'no-store',
       ...options,

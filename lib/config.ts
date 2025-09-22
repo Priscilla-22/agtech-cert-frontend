@@ -4,7 +4,7 @@ export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://agtech-c
 // export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
 export const API_CONFIG = {
-  BASE_URL: isClient ? '/api/' : `${API_BASE_URL}/`,
+  BASE_URL: isClient ? '/api/' : API_BASE_URL,
   TIMEOUT: 30000,
 } as const
 

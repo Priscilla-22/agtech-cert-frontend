@@ -1,6 +1,7 @@
 "use client"
 import { useState, useEffect } from "react"
 import Link from "next/link"
+import { useAuth } from "@/hooks/use-auth"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Badge } from "@/components/ui/badge"
@@ -84,19 +85,52 @@ function FarmsContent() {
   const [currentPage, setCurrentPage] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
   const [viewMode, setViewMode] = useState<'cards' | 'table'>('table')
+  const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const { toast } = useToast()
+  const { userEmail } = useAuth()
 
   const ITEMS_PER_PAGE = 10
+
+  // Get current user's farmer ID
+  useEffect(() => {
+    const getCurrentUserFarmerId = async () => {
+      if (!userEmail) return
+
+      try {
+        // Find farmer by email to get farmer ID
+        const farmersResponse = await api.farmers.getAll({ search: userEmail })
+        const farmers = Array.isArray(farmersResponse) ? farmersResponse : farmersResponse.data || []
+
+        // Find the farmer that matches the current user's email
+        const currentFarmer = farmers.find((farmer: any) => farmer.email === userEmail)
+        if (currentFarmer) {
+          setCurrentUserId(currentFarmer.id.toString())
+        }
+      } catch (error) {
+        console.error("Error finding current user farmer:", error)
+      }
+    }
+
+    getCurrentUserFarmerId()
+  }, [userEmail])
 
   const fetchFarms = async () => {
     try {
       setLoading(true)
-      const response = await api.farms.getAll({
-        search: searchTerm || undefined,
-        status: statusFilter !== "all" ? statusFilter : undefined,
-        certificationStatus: certificationFilter !== "all" ? certificationFilter : undefined,
-      })
-      
+
+      let response
+      if (currentUserId) {
+        // If we have a current user ID, only fetch farms for this farmer
+        response = await api.farms.getByFarmerId(currentUserId)
+      } else {
+        // Otherwise fetch all farms (for admin users)
+        response = await api.farms.getAll({
+          search: searchTerm || undefined,
+          status: statusFilter !== "all" ? statusFilter : undefined,
+          certificationStatus: certificationFilter !== "all" ? certificationFilter : undefined,
+        })
+      }
+
       // Handle both array and object response formats
       setFarms(Array.isArray(response) ? response : response.data || [])
     } catch (error) {
@@ -112,9 +146,11 @@ function FarmsContent() {
   }
 
   useEffect(() => {
-    fetchFarms()
-    setCurrentPage(0)
-  }, [searchTerm, statusFilter, certificationFilter])
+    if (userEmail !== undefined) {
+      fetchFarms()
+      setCurrentPage(0)
+    }
+  }, [searchTerm, statusFilter, certificationFilter, currentUserId, userEmail])
 
   // Filter farms based on current filters
   const filteredFarms = farms.filter(farm => {
@@ -208,9 +244,14 @@ function FarmsContent() {
               {/* Header */}
               <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
                 <div>
-                  <h1 className="text-3xl font-bold text-foreground">Farm Management</h1>
+                  <h1 className="text-3xl font-bold text-foreground">
+                    {currentUserId ? 'My Farms' : 'Farm Management'}
+                  </h1>
                   <p className="text-muted-foreground">
-                    Manage and track agricultural farms in the certification system
+                    {currentUserId
+                      ? 'Manage and track your registered farms'
+                      : 'Manage and track agricultural farms in the certification system'
+                    }
                   </p>
                 </div>
                 <div className="flex gap-2">
@@ -332,7 +373,10 @@ function FarmsContent() {
                     <div>
                       <CardTitle>Farms ({filteredFarms.length})</CardTitle>
                       <CardDescription>
-                        All registered farms in the system
+                        {currentUserId
+                          ? 'Your registered farms'
+                          : 'All registered farms in the system'
+                        }
                         {filteredFarms.length !== farms.length && ` - Showing ${filteredFarms.length} of ${farms.length} farms`}
                       </CardDescription>
                     </div>

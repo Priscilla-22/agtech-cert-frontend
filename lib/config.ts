@@ -1,6 +1,7 @@
 const isClient = typeof window !== 'undefined'
 
-export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
+export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://agtech-cert-backend.onrender.com/api'
+// export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3001/api'
 
 export const API_CONFIG = {
   BASE_URL: isClient ? '/api/' : `${API_BASE_URL}/`,

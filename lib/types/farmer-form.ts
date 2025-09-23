@@ -57,10 +57,10 @@ export interface FormErrors {
 export const EDUCATION_LEVELS = [
   { value: "primary", label: "Primary Education" },
   { value: "secondary", label: "Secondary Education" },
+  { value: "certificate", label: "Certificate" },
   { value: "diploma", label: "Diploma" },
   { value: "degree", label: "Bachelor's Degree" },
-  { value: "masters", label: "Master's Degree" },
-  { value: "other", label: "Other" }
+  { value: "postgraduate", label: "Postgraduate" }
 ]
 
 export const FARMING_EXPERIENCE = [
@@ -74,26 +74,22 @@ export const FARMING_EXPERIENCE = [
 export const FARMING_TYPES = [
   { value: "subsistence", label: "Subsistence Farming" },
   { value: "commercial", label: "Commercial Farming" },
-  { value: "mixed", label: "Mixed Farming (Crops + Livestock)" },
-  { value: "organic-transition", label: "Transitioning to Organic" },
-  { value: "organic-certified", label: "Already Organic Certified" }
+  { value: "mixed", label: "Mixed Farming (Crops + Livestock)" }
 ]
 
 export const LAND_TENURE_TYPES = [
-  { value: "freehold", label: "Freehold (Title Deed)" },
-  { value: "leasehold", label: "Leasehold" },
+  { value: "owned", label: "Owned" },
+  { value: "leased", label: "Leased" },
   { value: "communal", label: "Communal Land" },
-  { value: "family", label: "Family Land" },
-  { value: "rented", label: "Rented" }
+  { value: "family", label: "Family Land" }
 ]
 
 export const SOIL_TYPES = [
   { value: "clay", label: "Clay" },
-  { value: "loam", label: "Loam" },
   { value: "sandy", label: "Sandy" },
+  { value: "loam", label: "Loam" },
   { value: "volcanic", label: "Volcanic" },
-  { value: "black-cotton", label: "Black Cotton" },
-  { value: "red-soil", label: "Red Soil" }
+  { value: "black cotton", label: "Black Cotton" }
 ]
 
 export const IRRIGATION_METHODS = [
@@ -105,11 +101,17 @@ export const IRRIGATION_METHODS = [
 ]
 
 export const ORGANIC_EXPERIENCE_LEVELS = [
-  { value: "none", label: "No organic experience" },
-  { value: "beginner", label: "Beginner (< 1 year)" },
-  { value: "intermediate", label: "Intermediate (1-3 years)" },
-  { value: "experienced", label: "Experienced (3-5 years)" },
-  { value: "expert", label: "Expert (5+ years)" }
+  { value: "0-1", label: "0-1 years" },
+  { value: "2-3", label: "2-3 years" },
+  { value: "4-5", label: "4-5 years" },
+  { value: "6-10", label: "6-10 years" },
+  { value: "10+", label: "10+ years" }
+]
+
+export const PREVIOUS_CERTIFICATION_OPTIONS = [
+  { value: "yes", label: "Yes" },
+  { value: "no", label: "No" },
+  { value: "transitioning", label: "Currently transitioning" }
 ]
 
 export const AVAILABLE_CROPS = [

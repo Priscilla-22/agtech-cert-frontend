@@ -3,6 +3,7 @@ import type { Metadata } from "next"
 import { Suspense } from "react"
 import { AuthProvider } from "@/contexts/AuthContext"
 import { Toaster } from "@/components/ui/toaster"
+import { SpeedInsights } from "@vercel/speed-insights/next"
 import "./globals.css"
 
 export const metadata: Metadata = {
@@ -28,6 +29,7 @@ export default function RootLayout({
         <AuthProvider>
           <Suspense fallback={null}>{children}</Suspense>
           <Toaster />
+          <SpeedInsights />
         </AuthProvider>
       </body>
     </html>

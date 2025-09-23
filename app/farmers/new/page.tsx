@@ -348,6 +348,7 @@ function NewFarmerContent() {
                   {errors.ownedLandSize && <p className="text-sm text-red-500">{errors.ownedLandSize}</p>}
                 </div>
 
+
                 <div className="space-y-3">
                   <Label htmlFor="leasedLandSize" className="font-medium">Leased Land (Hectares)</Label>
                   <Input

@@ -84,7 +84,7 @@ function FarmsContent() {
   const [certificationFilter, setCertificationFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table')
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const { toast } = useToast()
   const { userEmail } = useAuth()
@@ -239,79 +239,81 @@ function FarmsContent() {
         <Sidebar />
         <div className="flex-1 flex flex-col">
           <Navbar />
-          <main className="flex-1 p-6">
-            <div className="max-w-7xl mx-auto space-y-6">
+          <main className="flex-1 p-3 sm:p-6">
+            <div className="max-w-7xl mx-auto space-y-4 sm:space-y-6">
               {/* Header */}
-              <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-                <div>
-                  <h1 className="text-3xl font-bold text-foreground">
+              <div className="flex flex-col gap-4 sm:gap-6">
+                <div className="text-center sm:text-left">
+                  <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
                     {currentUserId ? 'My Farms' : 'Farm Management'}
                   </h1>
-                  <p className="text-muted-foreground">
+                  <p className="text-sm sm:text-base text-muted-foreground mt-1">
                     {currentUserId
                       ? 'Manage and track your registered farms'
                       : 'Manage and track agricultural farms in the certification system'
                     }
                   </p>
                 </div>
-                <div className="flex gap-2">
+                <div className="flex flex-col sm:flex-row gap-2 sm:gap-3">
                   <Button
                     variant="outline"
                     onClick={() => setShowFilters(!showFilters)}
-                    className="flex items-center gap-2"
+                    className="flex items-center justify-center gap-2 flex-1 sm:flex-none"
                   >
                     <Filter className="w-4 h-4" />
-                    {showFilters ? 'Hide Filters' : 'Show Filters'}
+                    <span className="hidden xs:inline">{showFilters ? 'Hide Filters' : 'Show Filters'}</span>
+                    <span className="xs:hidden">Filter</span>
                   </Button>
-                  <Link href="/farms/new">
-                    <Button className="flex items-center gap-2">
+                  <Link href="/farms/new" className="flex-1 sm:flex-none">
+                    <Button className="flex items-center justify-center gap-2 w-full">
                       <Plus className="w-4 h-4" />
-                      Add New Farm
+                      <span className="hidden xs:inline">Add New Farm</span>
+                      <span className="xs:hidden">Add Farm</span>
                     </Button>
                   </Link>
                 </div>
               </div>
 
               {/* Stats Cards */}
-              <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4 mt-12 mb-20">
+              <div className="grid gap-3 grid-cols-2 lg:grid-cols-4 mt-6 sm:mt-8">
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Farms</CardTitle>
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Total Farms</CardTitle>
+                    <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">{farms.length}</div>
+                  <CardContent className="pt-1 sm:pt-2">
+                    <div className="text-lg sm:text-2xl font-bold">{farms.length}</div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Active Farms</CardTitle>
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Active Farms</CardTitle>
+                    <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
+                  <CardContent className="pt-1 sm:pt-2">
+                    <div className="text-lg sm:text-2xl font-bold">
                       {farms.filter(farm => farm.status === 'active' || !farm.status).length}
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Certified Farms</CardTitle>
-                    <Building2 className="h-4 w-4 text-muted-foreground" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Certified Farms</CardTitle>
+                    <Building2 className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
+                  <CardContent className="pt-1 sm:pt-2">
+                    <div className="text-lg sm:text-2xl font-bold">
                       {farms.filter(farm => farm.certificationStatus === 'certified').length}
                     </div>
                   </CardContent>
                 </Card>
                 <Card>
-                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-                    <CardTitle className="text-sm font-medium">Total Area</CardTitle>
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
+                  <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-1 sm:pb-2">
+                    <CardTitle className="text-xs sm:text-sm font-medium">Total Area</CardTitle>
+                    <MapPin className="h-3 w-3 sm:h-4 sm:w-4 text-muted-foreground" />
                   </CardHeader>
-                  <CardContent>
-                    <div className="text-2xl font-bold">
+                  <CardContent className="pt-1 sm:pt-2">
+                    <div className="text-lg sm:text-2xl font-bold">
                       {farms.reduce((total, farm) => total + (parseFloat(farm.totalArea?.toString() || '0') || 0), 0).toFixed(1)} ha
                     </div>
                   </CardContent>
@@ -321,46 +323,48 @@ function FarmsContent() {
               {/* Filters */}
               {showFilters && (
                 <Card>
-                  <CardHeader>
-                    <CardTitle>Search & Filter</CardTitle>
-                    <CardDescription>
+                  <CardHeader className="pb-3 sm:pb-4">
+                    <CardTitle className="text-lg sm:text-xl">Search & Filter</CardTitle>
+                    <CardDescription className="text-sm">
                       Find farms by name, location, or farmer
                     </CardDescription>
                   </CardHeader>
                   <CardContent>
-                    <div className="flex flex-col gap-4 md:flex-row">
-                      <div className="relative flex-1">
+                    <div className="space-y-3 sm:space-y-4">
+                      <div className="relative">
                         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-muted-foreground w-4 h-4" />
                         <Input
                           placeholder="Search farms..."
-                          className="pl-10"
+                          className="pl-10 h-11 sm:h-10"
                           value={searchTerm}
                           onChange={(e) => setSearchTerm(e.target.value)}
                         />
                       </div>
-                      <Select value={statusFilter} onValueChange={setStatusFilter}>
-                        <SelectTrigger className="w-full md:w-40">
-                          <SelectValue placeholder="Status" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Status</SelectItem>
-                          <SelectItem value="active">Active</SelectItem>
-                          <SelectItem value="inactive">Inactive</SelectItem>
-                          <SelectItem value="suspended">Suspended</SelectItem>
-                        </SelectContent>
-                      </Select>
-                      <Select value={certificationFilter} onValueChange={setCertificationFilter}>
-                        <SelectTrigger className="w-full md:w-40">
-                          <SelectValue placeholder="Certification" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="all">All Certifications</SelectItem>
-                          <SelectItem value="certified">Certified</SelectItem>
-                          <SelectItem value="pending">Pending</SelectItem>
-                          <SelectItem value="expired">Expired</SelectItem>
-                          <SelectItem value="not-certified">Not Certified</SelectItem>
-                        </SelectContent>
-                      </Select>
+                      <div className="grid gap-3 sm:grid-cols-2">
+                        <Select value={statusFilter} onValueChange={setStatusFilter}>
+                          <SelectTrigger className="h-11 sm:h-10">
+                            <SelectValue placeholder="Status" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Status</SelectItem>
+                            <SelectItem value="active">Active</SelectItem>
+                            <SelectItem value="inactive">Inactive</SelectItem>
+                            <SelectItem value="suspended">Suspended</SelectItem>
+                          </SelectContent>
+                        </Select>
+                        <Select value={certificationFilter} onValueChange={setCertificationFilter}>
+                          <SelectTrigger className="h-11 sm:h-10">
+                            <SelectValue placeholder="Certification" />
+                          </SelectTrigger>
+                          <SelectContent>
+                            <SelectItem value="all">All Certifications</SelectItem>
+                            <SelectItem value="certified">Certified</SelectItem>
+                            <SelectItem value="pending">Pending</SelectItem>
+                            <SelectItem value="expired">Expired</SelectItem>
+                            <SelectItem value="not-certified">Not Certified</SelectItem>
+                          </SelectContent>
+                        </Select>
+                      </div>
                     </div>
                   </CardContent>
                 </Card>
@@ -368,11 +372,11 @@ function FarmsContent() {
 
               {/* Farms Cards */}
               <Card>
-                <CardHeader>
-                  <div className="flex items-center justify-between">
+                <CardHeader className="pb-3 sm:pb-6">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
                     <div>
-                      <CardTitle>Farms ({filteredFarms.length})</CardTitle>
-                      <CardDescription>
+                      <CardTitle className="text-lg sm:text-xl">Farms ({filteredFarms.length})</CardTitle>
+                      <CardDescription className="text-sm">
                         {currentUserId
                           ? 'Your registered farms'
                           : 'All registered farms in the system'
@@ -380,24 +384,24 @@ function FarmsContent() {
                         {filteredFarms.length !== farms.length && ` - Showing ${filteredFarms.length} of ${farms.length} farms`}
                       </CardDescription>
                     </div>
-                    <div className="flex items-center gap-1 p-1 bg-muted rounded-lg">
+                    <div className="flex items-center gap-1 p-1 bg-muted rounded-lg self-start sm:self-auto">
                       <Button
                         variant={viewMode === 'cards' ? 'default' : 'ghost'}
                         size="sm"
                         onClick={() => setViewMode('cards')}
-                        className="h-8 px-3"
+                        className="h-8 px-2 sm:px-3"
                       >
-                        <Grid3X3 className="w-4 h-4 mr-1" />
-                        Cards
+                        <Grid3X3 className="w-4 h-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Cards</span>
                       </Button>
                       <Button
                         variant={viewMode === 'table' ? 'default' : 'ghost'}
                         size="sm"
                         onClick={() => setViewMode('table')}
-                        className="h-8 px-3"
+                        className="h-8 px-2 sm:px-3"
                       >
-                        <List className="w-4 h-4 mr-1" />
-                        Table
+                        <List className="w-4 h-4 sm:mr-1" />
+                        <span className="hidden sm:inline">Table</span>
                       </Button>
                     </div>
                   </div>
@@ -422,21 +426,21 @@ function FarmsContent() {
                     <div className="space-y-6">
                       {viewMode === 'cards' ? (
                         /* Farm Cards Grid */
-                        <div className="grid gap-6 md:grid-cols-2">
+                        <div className="grid gap-4 sm:gap-6 grid-cols-1 lg:grid-cols-2">
                           {paginatedFarms.map((farm) => (
                             <Card key={farm.id} className="border border-gray-200 hover:shadow-lg transition-shadow">
-                              <CardHeader className="pb-3">
-                                <div className="flex items-start justify-between">
-                                  <div className="space-y-1">
-                                    <CardTitle className="text-lg">{farm.farmName}</CardTitle>
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                      <User className="w-4 h-4" />
-                                      {farm.farmerName || `Farmer #${farm.farmerId}`}
+                              <CardHeader className="pb-3 sm:pb-4">
+                                <div className="flex items-start justify-between gap-3">
+                                  <div className="space-y-1 min-w-0 flex-1">
+                                    <CardTitle className="text-base sm:text-lg truncate">{farm.farmName}</CardTitle>
+                                    <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                                      <User className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                      <span className="truncate">{farm.farmerName || `Farmer #${farm.farmerId}`}</span>
                                     </div>
                                   </div>
                                   <DropdownMenu>
                                     <DropdownMenuTrigger asChild>
-                                      <Button variant="ghost" size="sm">
+                                      <Button variant="ghost" size="sm" className="h-8 w-8 p-0 flex-shrink-0">
                                         <MoreHorizontal className="w-4 h-4" />
                                       </Button>
                                     </DropdownMenuTrigger>
@@ -463,7 +467,7 @@ function FarmsContent() {
                                             Delete Farm
                                           </DropdownMenuItem>
                                         </AlertDialogTrigger>
-                                        <AlertDialogContent>
+                                        <AlertDialogContent className="mx-4 max-w-sm sm:max-w-md">
                                           <AlertDialogHeader>
                                             <AlertDialogTitle>Delete Farm</AlertDialogTitle>
                                             <AlertDialogDescription>
@@ -471,11 +475,11 @@ function FarmsContent() {
                                               cannot be undone and will remove all associated data.
                                             </AlertDialogDescription>
                                           </AlertDialogHeader>
-                                          <AlertDialogFooter>
-                                            <AlertDialogCancel>Cancel</AlertDialogCancel>
+                                          <AlertDialogFooter className="flex-col sm:flex-row gap-2">
+                                            <AlertDialogCancel className="w-full sm:w-auto">Cancel</AlertDialogCancel>
                                             <AlertDialogAction
                                               onClick={() => handleDeleteFarm(farm.id)}
-                                              className="bg-red-600 hover:bg-red-700"
+                                              className="bg-red-600 hover:bg-red-700 w-full sm:w-auto"
                                             >
                                               Delete Farm
                                             </AlertDialogAction>
@@ -486,36 +490,36 @@ function FarmsContent() {
                                   </DropdownMenu>
                                 </div>
                               </CardHeader>
-                              <CardContent className="space-y-4">
+                              <CardContent className="space-y-3 sm:space-y-4">
                                 {/* Location and Size */}
-                                <div className="grid grid-cols-2 gap-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 sm:gap-4">
                                   <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <MapPin className="w-4 h-4 text-muted-foreground" />
+                                    <div className="flex items-center gap-2 text-xs sm:text-sm">
+                                      <MapPin className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
                                       <span className="text-muted-foreground">Location</span>
                                     </div>
-                                    <p className="text-sm font-medium">{farm.location}</p>
+                                    <p className="text-xs sm:text-sm font-medium truncate" title={farm.location}>{farm.location}</p>
                                   </div>
                                   <div className="space-y-1">
-                                    <div className="flex items-center gap-2 text-sm">
-                                      <Building2 className="w-4 h-4 text-muted-foreground" />
+                                    <div className="flex items-center gap-2 text-xs sm:text-sm">
+                                      <Building2 className="w-3 h-3 sm:w-4 sm:h-4 text-muted-foreground flex-shrink-0" />
                                       <span className="text-muted-foreground">Size</span>
                                     </div>
-                                    <p className="text-sm font-medium">{farm.totalArea} ha</p>
+                                    <p className="text-xs sm:text-sm font-medium">{farm.totalArea} ha</p>
                                   </div>
                                 </div>
 
                                 {/* Crops */}
                                 <div className="space-y-2">
-                                  <span className="text-sm text-muted-foreground">Crops</span>
+                                  <span className="text-xs sm:text-sm text-muted-foreground">Crops</span>
                                   <div className="flex flex-wrap gap-1">
                                     {farm.cropTypes?.slice(0, 3).map((crop) => (
-                                      <Badge key={crop} variant="secondary" className="text-xs">
+                                      <Badge key={crop} variant="secondary" className="text-xs px-2 py-0.5">
                                         {crop}
                                       </Badge>
                                     ))}
                                     {farm.cropTypes?.length > 3 && (
-                                      <Badge variant="secondary" className="text-xs">
+                                      <Badge variant="secondary" className="text-xs px-2 py-0.5">
                                         +{farm.cropTypes.length - 3}
                                       </Badge>
                                     )}
@@ -523,19 +527,19 @@ function FarmsContent() {
                                 </div>
 
                                 {/* Status and Certification */}
-                                <div className="flex items-center justify-between">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                                   <div className="space-y-1">
-                                    <span className="text-sm text-muted-foreground">Status</span>
+                                    <span className="text-xs sm:text-sm text-muted-foreground">Status</span>
                                     <div>
-                                      <Badge className={getStatusBadge(farm.status || 'active')}>
+                                      <Badge className={getStatusBadge(farm.status || 'active')} variant="outline">
                                         {farm.status || 'active'}
                                       </Badge>
                                     </div>
                                   </div>
-                                  <div className="space-y-1 text-right">
-                                    <span className="text-sm text-muted-foreground">Certification</span>
+                                  <div className="space-y-1">
+                                    <span className="text-xs sm:text-sm text-muted-foreground">Certification</span>
                                     <div>
-                                      <Badge className={getCertificationBadge(farm.certificationStatus)}>
+                                      <Badge className={getCertificationBadge(farm.certificationStatus)} variant="outline">
                                         {farm.certificationStatus}
                                       </Badge>
                                     </div>
@@ -544,9 +548,9 @@ function FarmsContent() {
 
                                 {/* Registration Date */}
                                 <div className="pt-2 border-t">
-                                  <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                    <Calendar className="w-4 h-4" />
-                                    Organic since {new Date(farm.organicSince).toLocaleDateString()}
+                                  <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                                    <Calendar className="w-3 h-3 sm:w-4 sm:h-4 flex-shrink-0" />
+                                    <span>Organic since {new Date(farm.organicSince).toLocaleDateString()}</span>
                                   </div>
                                 </div>
                               </CardContent>

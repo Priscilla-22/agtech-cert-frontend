@@ -83,7 +83,6 @@ function NewFarmerContent() {
     ward: "",
     village: "",
     address: "",
-    gpsCoordinates: "",
     yearsInFarming: "",
     educationLevel: "",
     agriculturalTraining: "",
@@ -296,18 +295,6 @@ function NewFarmerContent() {
                   className={errors.address ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}
                 />
                 {errors.address && <p className="text-sm text-red-500">{errors.address}</p>}
-              </div>
-
-              <div className="space-y-3">
-                <Label htmlFor="gpsCoordinates" className="font-medium">GPS Coordinates (optional)</Label>
-                <Input
-                  id="gpsCoordinates"
-                  value={formData.gpsCoordinates}
-                  onChange={(e) => setFormData({ ...formData, gpsCoordinates: e.target.value })}
-                  placeholder="e.g., -0.3031, 36.0800"
-                  className="border-green-200 focus:border-green-400 focus:ring-green-200"
-                />
-                <p className="text-xs text-muted-foreground">This will help inspectors locate your farm more easily</p>
               </div>
             </div>
           </div>

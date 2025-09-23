@@ -13,7 +13,6 @@ export interface FarmerFormData {
   ward: string
   village: string
   address: string
-  gpsCoordinates: string
 
   // Farming Background
   yearsInFarming: string

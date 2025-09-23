@@ -1,24 +1,30 @@
 import { type NextRequest, NextResponse } from "next/server"
-import { fetchCertificateById } from "@/lib/services/certificate-service"
-import { generateCertificateHTML } from "@/lib/services/certificate-template"
+import { API_CONFIG } from "@/lib/config"
 
 export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
   try {
-    const certificate = await fetchCertificateById(params.id)
+    // Proxy to backend PDF endpoint to use PDFService
+    const backendUrl = `${API_CONFIG.BASE_URL}/certificates/${params.id}/pdf`
+    const response = await fetch(backendUrl)
 
-    if (!certificate) {
-      return NextResponse.json({ error: "Certificate not found" }, { status: 404 })
+    if (!response.ok) {
+      if (response.status === 404) {
+        return NextResponse.json({ error: "Certificate not found" }, { status: 404 })
+      }
+      throw new Error(`Backend returned ${response.status}`)
     }
 
-    const htmlContent = generateCertificateHTML(certificate)
+    const pdfBuffer = await response.arrayBuffer()
 
-    return new NextResponse(htmlContent, {
+    return new NextResponse(pdfBuffer, {
       headers: {
-        "Content-Type": "text/html",
-        "Content-Disposition": `inline; filename="certificate-${certificate.certificateNumber}.html"`,
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="certificate-${params.id}.pdf"`,
+        "Content-Length": pdfBuffer.byteLength.toString(),
       },
     })
   } catch (error) {
+    console.error('PDF proxy error:', error)
     return NextResponse.json({ error: "Failed to generate PDF" }, { status: 500 })
   }
 }

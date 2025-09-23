@@ -30,9 +30,10 @@ class ApiClient {
 
   private buildUrl(endpoint: string, params?: QueryParams): string {
     let url: URL
-    
+
     if (this.baseUrl.startsWith('http')) {
-      url = new URL(endpoint, this.baseUrl)
+      const baseUrlWithSlash = this.baseUrl.endsWith('/') ? this.baseUrl : `${this.baseUrl}/`
+      url = new URL(endpoint, baseUrlWithSlash)
     } else {
       const fullUrl = this.baseUrl + endpoint
       url = new URL(fullUrl, window.location.origin)

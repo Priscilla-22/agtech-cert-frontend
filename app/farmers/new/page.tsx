@@ -22,7 +22,7 @@ import ProtectedRoute from "@/components/ProtectedRoute"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
 import { createFarmer } from "@/lib/services/farmer-service"
-import { FarmerFormData, FormStep, FormErrors } from "@/lib/types/farmer-form"
+import { FarmerFormData, FormStep, FormErrors, LAND_TENURE_TYPES, SOIL_TYPES, ORGANIC_EXPERIENCE_LEVELS, IRRIGATION_METHODS, WATER_SOURCES } from "@/lib/types/farmer-form"
 import { PersonalInfoStep } from "@/components/forms/farmer/personal-info-step"
 import { FarmingBackgroundStep } from "@/components/forms/farmer/farming-background-step"
 
@@ -373,11 +373,11 @@ function NewFarmerContent() {
                       <SelectValue placeholder="Select land tenure" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="freehold">Freehold (Title Deed)</SelectItem>
-                      <SelectItem value="leasehold">Leasehold</SelectItem>
-                      <SelectItem value="communal">Communal Land</SelectItem>
-                      <SelectItem value="family">Family Land</SelectItem>
-                      <SelectItem value="rented">Rented</SelectItem>
+                      {LAND_TENURE_TYPES.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {errors.landTenure && <p className="text-sm text-red-500">{errors.landTenure}</p>}
@@ -393,12 +393,11 @@ function NewFarmerContent() {
                       <SelectValue placeholder="Select soil type" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="clay">Clay</SelectItem>
-                      <SelectItem value="loam">Loam</SelectItem>
-                      <SelectItem value="sandy">Sandy</SelectItem>
-                      <SelectItem value="volcanic">Volcanic</SelectItem>
-                      <SelectItem value="black-cotton">Black Cotton</SelectItem>
-                      <SelectItem value="red-soil">Red Soil</SelectItem>
+                      {SOIL_TYPES.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
                     </SelectContent>
                   </Select>
                   {errors.soilType && <p className="text-sm text-red-500">{errors.soilType}</p>}
@@ -416,7 +415,7 @@ function NewFarmerContent() {
               <div className="space-y-4">
                 <Label className="font-medium">Water Sources Available</Label>
                 <div className="grid grid-cols-2 md:grid-cols-3 gap-3 p-4 border border-green-100 rounded-lg bg-green-50/30">
-                  {['River', 'Borehole', 'Well', 'Spring', 'Rainwater', 'Municipal', 'Dam/Pond'].map((source) => (
+                  {WATER_SOURCES.map((source) => (
                     <div key={source} className="flex items-center space-x-3 p-2 rounded">
                       <Checkbox
                         id={source}
@@ -440,11 +439,11 @@ function NewFarmerContent() {
                     <SelectValue placeholder="Select irrigation method (if applicable)" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Rain-fed only</SelectItem>
-                    <SelectItem value="drip">Drip Irrigation</SelectItem>
-                    <SelectItem value="sprinkler">Sprinkler</SelectItem>
-                    <SelectItem value="furrow">Furrow Irrigation</SelectItem>
-                    <SelectItem value="manual">Manual Watering</SelectItem>
+                    {IRRIGATION_METHODS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 <p className="text-xs text-muted-foreground">Select the primary irrigation method used on your farm</p>
@@ -523,11 +522,11 @@ function NewFarmerContent() {
                     <SelectValue placeholder="Select experience level" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">No organic experience</SelectItem>
-                    <SelectItem value="beginner">Beginner (&lt; 1 year)</SelectItem>
-                    <SelectItem value="intermediate">Intermediate (1-3 years)</SelectItem>
-                    <SelectItem value="experienced">Experienced (3-5 years)</SelectItem>
-                    <SelectItem value="expert">Expert (5+ years)</SelectItem>
+                    {ORGANIC_EXPERIENCE_LEVELS.map((option) => (
+                      <SelectItem key={option.value} value={option.value}>
+                        {option.label}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
                 {errors.organicExperience && <p className="text-sm text-red-500">{errors.organicExperience}</p>}

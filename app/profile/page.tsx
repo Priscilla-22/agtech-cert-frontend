@@ -8,12 +8,15 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
-import { User, Mail, Phone, MapPin, Shield, Calendar, LogOut, Edit, Save } from "lucide-react"
+import { User, Mail, Phone, MapPin, Shield, Calendar, LogOut, Edit, Save, Tractor, Eye, Building2 } from "lucide-react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useState, useEffect } from "react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useRouter } from "next/navigation"
 import { fetchProfileStats, generateProfileData, ProfileStats, ProfileData } from "@/lib/services/profile-stats"
+import { api } from "@/lib/api-client"
+import Link from "next/link"
+import { Badge } from "@/components/ui/badge"
 
 function ProfileContent() {
   const { user, signOut } = useAuth()
@@ -36,6 +39,36 @@ function ProfileContent() {
     certificatesIssued: 0,
     successRate: 0
   })
+  const [userFarms, setUserFarms] = useState<any[]>([])
+  const [farmsLoading, setFarmsLoading] = useState(false)
+
+  useEffect(() => {
+    const loadUserFarms = async () => {
+      if (!user?.email) return
+
+      try {
+        setFarmsLoading(true)
+
+        const farmersResponse = await api.farmers.getAll({ search: user.email })
+        const farmers = Array.isArray(farmersResponse) ? farmersResponse : farmersResponse.data || []
+
+        const currentFarmer = farmers.find((farmer: any) => farmer.email === user.email)
+
+        if (currentFarmer) {
+          const farmsResponse = await api.farms.getByFarmerId(currentFarmer.id.toString())
+          const farms = Array.isArray(farmsResponse) ? farmsResponse : farmsResponse.data || []
+          setUserFarms(farms)
+        }
+      } catch (error) {
+        console.error("Error loading user farms:", error)
+        setUserFarms([])
+      } finally {
+        setFarmsLoading(false)
+      }
+    }
+
+    loadUserFarms()
+  }, [user])
 
   useEffect(() => {
     const loadProfileData = async () => {
@@ -236,6 +269,115 @@ function ProfileContent() {
                 </CardContent>
               </Card>
             </div>
+
+            {/* Registered Farms Section */}
+            <Card>
+              <CardHeader>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <CardTitle className="flex items-center gap-2">
+                      <Building2 className="w-5 h-5" />
+                      Registered Farms ({userFarms.length})
+                    </CardTitle>
+                    <CardDescription>Farms associated with your account</CardDescription>
+                  </div>
+                  <Link href="/farms/new">
+                    <Button>
+                      <Tractor className="w-4 h-4 mr-2" />
+                      Add Farm
+                    </Button>
+                  </Link>
+                </div>
+              </CardHeader>
+              <CardContent>
+                {farmsLoading ? (
+                  <div className="flex items-center justify-center py-8">
+                    <div className="w-6 h-6 border-2 border-primary border-t-transparent rounded-full animate-spin" />
+                    <span className="ml-2 text-muted-foreground">Loading farms...</span>
+                  </div>
+                ) : userFarms.length === 0 ? (
+                  <div className="text-center py-8">
+                    <Building2 className="mx-auto h-12 w-12 text-muted-foreground/50" />
+                    <h3 className="mt-2 text-sm font-medium text-muted-foreground">No farms registered</h3>
+                    <p className="mt-1 text-sm text-muted-foreground">
+                      Get started by registering your first farm.
+                    </p>
+                    <div className="mt-6">
+                      <Link href="/farms/new">
+                        <Button>
+                          <Tractor className="w-4 h-4 mr-2" />
+                          Register Your First Farm
+                        </Button>
+                      </Link>
+                    </div>
+                  </div>
+                ) : (
+                  <div className="grid gap-4 md:grid-cols-2">
+                    {userFarms.map((farm: any) => (
+                      <Card key={farm.id} className="border border-gray-200 hover:shadow-md transition-shadow">
+                        <CardHeader className="pb-3">
+                          <div className="flex items-start justify-between">
+                            <div className="space-y-1 min-w-0 flex-1">
+                              <CardTitle className="text-lg truncate">{farm.farmName}</CardTitle>
+                              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                                <MapPin className="w-4 h-4 flex-shrink-0" />
+                                <span className="truncate">{farm.location}</span>
+                              </div>
+                            </div>
+                            <Link href={`/farms/${farm.id}`}>
+                              <Button variant="ghost" size="sm">
+                                <Eye className="w-4 h-4" />
+                              </Button>
+                            </Link>
+                          </div>
+                        </CardHeader>
+                        <CardContent className="space-y-3">
+                          <div className="grid grid-cols-2 gap-4">
+                            <div className="space-y-1">
+                              <span className="text-sm text-muted-foreground">Size</span>
+                              <p className="text-sm font-medium">{farm.totalArea} ha</p>
+                            </div>
+                            <div className="space-y-1">
+                              <span className="text-sm text-muted-foreground">Status</span>
+                              <Badge
+                                variant="secondary"
+                                className={
+                                  farm.certificationStatus === 'certified'
+                                    ? "bg-green-100 text-green-800"
+                                    : farm.certificationStatus === 'pending'
+                                    ? "bg-yellow-100 text-yellow-800"
+                                    : "bg-gray-100 text-gray-800"
+                                }
+                              >
+                                {farm.certificationStatus}
+                              </Badge>
+                            </div>
+                          </div>
+
+                          {farm.cropTypes && farm.cropTypes.length > 0 && (
+                            <div className="space-y-2">
+                              <span className="text-sm text-muted-foreground">Crops</span>
+                              <div className="flex flex-wrap gap-1">
+                                {farm.cropTypes.slice(0, 3).map((crop: string) => (
+                                  <Badge key={crop} variant="outline" className="text-xs">
+                                    {crop}
+                                  </Badge>
+                                ))}
+                                {farm.cropTypes.length > 3 && (
+                                  <Badge variant="outline" className="text-xs">
+                                    +{farm.cropTypes.length - 3}
+                                  </Badge>
+                                )}
+                              </div>
+                            </div>
+                          )}
+                        </CardContent>
+                      </Card>
+                    ))}
+                  </div>
+                )}
+              </CardContent>
+            </Card>
 
             {/* Statistics Cards */}
             <div className="grid gap-4 md:grid-cols-4">

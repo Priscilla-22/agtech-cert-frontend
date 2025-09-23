@@ -20,9 +20,21 @@ export const post = async (endpoint: string, data: any, options?: RequestInit): 
       body: JSON.stringify(data),
       ...options,
     })
-    return response.ok ? await response.json() : null
-  } catch {
-    return null
+
+    if (response.ok) {
+      return await response.json()
+    } else {
+      const errorData = await response.text()
+      console.error(`POST ${endpoint} failed:`, {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      })
+      return { error: `HTTP ${response.status}: ${response.statusText}` }
+    }
+  } catch (error) {
+    console.error(`POST ${endpoint} network error:`, error)
+    return { error: 'Network error occurred' }
   }
 }
 

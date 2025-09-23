@@ -177,7 +177,7 @@ function NewFarmerContent() {
     setIsSubmitting(true)
 
     try {
-      await createFarmer(formData)
+      const newFarmer = await createFarmer(formData)
 
       toast({
         title: "Farmer Registered Successfully!",

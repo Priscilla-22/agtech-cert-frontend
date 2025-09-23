@@ -120,10 +120,8 @@ function FarmsContent() {
 
       let response
       if (currentUserId) {
-        // If we have a current user ID, only fetch farms for this farmer
         response = await api.farms.getByFarmerId(currentUserId)
       } else {
-        // Otherwise fetch all farms (for admin users)
         response = await api.farms.getAll({
           search: searchTerm || undefined,
           status: statusFilter !== "all" ? statusFilter : undefined,
@@ -131,7 +129,6 @@ function FarmsContent() {
         })
       }
 
-      // Handle both array and object response formats
       setFarms(Array.isArray(response) ? response : response.data || [])
     } catch (error) {
       console.error("Error fetching farms:", error)
@@ -560,7 +557,7 @@ function FarmsContent() {
                       ) : (
                         /* Table View */
                         <div className="overflow-x-auto">
-                          <Table>
+                          <Table className="min-w-full">
                             <TableHeader style={{ backgroundColor: '#CBDDE9' }}>
                               <TableRow className="border-b-2 border-gray-200" style={{ backgroundColor: '#CBDDE9' }}>
                                 <TableHead className="w-[100px] font-semibold text-gray-900 py-4 px-6 border-r border-gray-300" style={{ backgroundColor: '#CBDDE9' }}>#</TableHead>

@@ -55,10 +55,10 @@ export function DataTable<TData, TValue>({
     },
   })
 
-  // Check for mobile view
+  // Check for mobile view (under 640px shows cards, above shows table with horizontal scroll)
   React.useEffect(() => {
     const checkMobile = () => {
-      setIsMobileView(window.innerWidth < 768)
+      setIsMobileView(window.innerWidth < 640) // Changed to sm breakpoint instead of md
     }
 
     checkMobile()
@@ -150,14 +150,15 @@ export function DataTable<TData, TValue>({
         </div>
       ) : null}
 
-      {/* Mobile View */}
-      <div className="md:hidden">
+      {/* Mobile Card View */}
+      <div className="sm:hidden">
         {renderMobileView()}
       </div>
 
-      {/* Desktop View */}
-      <div className="hidden md:block rounded-md border overflow-auto">
-        <Table>
+      {/* Tablet and Desktop Table View with Horizontal Scroll */}
+      <div className="hidden sm:block rounded-md border">
+        <div className="overflow-x-auto">
+          <Table className="min-w-full">
           <TableHeader style={{ backgroundColor: '#CBDDE9' }}>
             {table.getHeaderGroups().map((headerGroup) => (
               <TableRow key={headerGroup.id} className="border-b-2 border-gray-200" style={{ backgroundColor: '#CBDDE9' }}>
@@ -192,7 +193,8 @@ export function DataTable<TData, TValue>({
               </TableRow>
             )}
           </TableBody>
-        </Table>
+          </Table>
+        </div>
       </div>
 
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">

@@ -20,6 +20,16 @@ export const fetchAllFarmers = async (): Promise<Farmer[]> => {
   return response?.data || response || []
 }
 
-export const createFarmer = async (data: FarmerCreateData): Promise<Farmer | null> => {
-  return await post('/farmers', data)
+export const createFarmer = async (data: FarmerCreateData): Promise<Farmer> => {
+  const result = await post('/farmers', data)
+
+  if (result && result.error) {
+    throw new Error(result.error)
+  }
+
+  if (!result) {
+    throw new Error('Failed to create farmer - no response received')
+  }
+
+  return result
 }

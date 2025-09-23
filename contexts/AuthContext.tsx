@@ -41,15 +41,6 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userCredential = await signInWithEmailAndPassword(auth, email, password);
 
-      if (!userCredential.user.emailVerified) {
-        toast({
-          title: "Email not verified",
-          description: "Please verify your email before signing in.",
-          variant: "destructive",
-        });
-        await signOut(auth);
-        return;
-      }
 
       toast({
         title: "Success",
@@ -81,16 +72,13 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const userCredential = await createUserWithEmailAndPassword(auth, email, password);
 
-      // Send email verification
+      // Send email verification (optional)
       await sendEmailVerification(userCredential.user);
 
       toast({
         title: "Success",
-        description: "Account created! Please check your email for verification.",
+        description: "Account created successfully! You can now use the application.",
       });
-
-      // Sign out the user until they verify their email
-      await signOut(auth);
     } catch (error: any) {
       let message = "Failed to create account";
 

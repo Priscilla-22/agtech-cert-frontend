@@ -15,7 +15,7 @@ import Link from "next/link"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useEffect, useState } from "react"
 import { fetchAllCertificates } from "@/lib/services/certificate-service"
-import { API_ENDPOINTS } from "@/lib/config"
+import { api } from "@/lib/api-client"
 
 
 const columns: ColumnDef<Certificate>[] = [
@@ -94,8 +94,22 @@ const columns: ColumnDef<Certificate>[] = [
     cell: ({ row }: { row: any }) => {
       const certificate = row.original
 
-      function downloadPDF() {
-        window.open(`/api/${API_ENDPOINTS.CERTIFICATES.PDF(certificate.id)}`, '_blank')
+      async function downloadPDF() {
+        try {
+          const blob = await api.certificates.downloadPDF(certificate.id.toString())
+          const url = URL.createObjectURL(blob)
+          const a = document.createElement('a')
+          a.href = url
+          a.download = `certificate-${certificate.certificateNumber || certificate.id}.pdf`
+          document.body.appendChild(a)
+          a.click()
+          URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+        } catch (error) {
+          console.error('Download failed:', error)
+          // Fallback to window.open
+          window.open(`/api/certificates/${certificate.id}/pdf`, '_blank')
+        }
       }
 
       function approveRenewal() {

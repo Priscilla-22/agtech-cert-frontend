@@ -17,7 +17,7 @@ import { useState, useEffect } from "react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api-client"
-import { FARMING_EXPERIENCE, EDUCATION_LEVELS } from "@/lib/types/farmer-form"
+import { FARMING_EXPERIENCE, EDUCATION_LEVELS, FARMING_TYPES } from "@/lib/types/farmer-form"
 
 interface EditFarmerPageProps {
   params: { id: string }
@@ -389,10 +389,11 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
                           <SelectValue placeholder="Select farming type" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="organic">Organic</SelectItem>
-                          <SelectItem value="conventional">Conventional</SelectItem>
-                          <SelectItem value="mixed">Mixed</SelectItem>
-                          <SelectItem value="subsistence">Subsistence</SelectItem>
+                          {FARMING_TYPES.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

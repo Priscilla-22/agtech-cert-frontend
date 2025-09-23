@@ -1,6 +1,7 @@
 export interface Farmer {
   id: string
   name: string
+  memberNumber?: string
   email: string
   phone: string
   address: string

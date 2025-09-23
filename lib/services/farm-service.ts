@@ -21,22 +21,3 @@ export const fetchAllFarms = async (): Promise<Farm[]> => {
 export const createFarm = async (data: FarmCreateData): Promise<Farm | null> => {
   return await post('/farms', data)
 }
-
-interface FarmQueryParams {
-  farmerId?: string | null
-  search?: string | null
-  limit?: string | null
-  offset?: string | null
-}
-
-export const fetchAllFarmsWithParams = async (params?: FarmQueryParams): Promise<Farm[]> => {
-  const queryParams = new URLSearchParams()
-  if (params?.farmerId) queryParams.append('farmerId', params.farmerId)
-  if (params?.search) queryParams.append('search', params.search)
-  if (params?.limit) queryParams.append('limit', params.limit)
-  if (params?.offset) queryParams.append('offset', params.offset)
-
-  const queryString = queryParams.toString()
-  const endpoint = `/farms${queryString ? `?${queryString}` : ''}`
-  return await getList(endpoint)
-}

@@ -23,6 +23,18 @@ export function createFarmerColumns(onDelete: (farmerId: string) => void): Colum
       header: "Name",
     },
     {
+      accessorKey: "memberNumber",
+      header: "Member Number",
+      cell: ({ row }) => {
+        const memberNumber = row.getValue("memberNumber") as string
+        return (
+          <span className="font-mono text-sm bg-gray-100 px-2 py-1 rounded">
+            {memberNumber || 'N/A'}
+          </span>
+        )
+      },
+    },
+    {
       accessorKey: "email",
       header: "Email",
     },

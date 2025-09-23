@@ -1,17 +1,9 @@
 import { NextRequest, NextResponse } from "next/server"
-import { fetchAllFarmsWithParams, createFarm } from "@/lib/services/farm-service"
+import { fetchAllFarms, createFarm } from "@/lib/services/farm-service"
 
-export async function GET(request: NextRequest) {
+export async function GET() {
   try {
-    const searchParams = request.nextUrl.searchParams
-    const params = {
-      farmerId: searchParams.get('farmerId'),
-      search: searchParams.get('search'),
-      limit: searchParams.get('limit'),
-      offset: searchParams.get('offset')
-    }
-
-    const farms = await fetchAllFarmsWithParams(params)
+    const farms = await fetchAllFarms()
     return NextResponse.json(farms)
   } catch {
     return NextResponse.json({ error: "Failed to fetch farms" }, { status: 500 })

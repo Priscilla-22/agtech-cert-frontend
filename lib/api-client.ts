@@ -156,8 +156,8 @@ class ApiClient {
   }
 
   farms = {
-    getAll: (params?: { farmerId?: string }) => {
-      return this.request<ApiResponse<any[]>>(API_ENDPOINTS.FARMS.LIST, { method: HTTP_METHODS.GET }, params)
+    getAll: () => {
+      return this.request<ApiResponse<any[]>>(API_ENDPOINTS.FARMS.LIST, { method: HTTP_METHODS.GET })
     },
 
     getById: (id: string) => {

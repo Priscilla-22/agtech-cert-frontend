@@ -166,6 +166,13 @@ function FarmerDetailContent({ params }: FarmerDetailPageProps) {
                         <User className="w-12 h-12 text-white" />
                       </div>
                       <h2 className="text-xl font-bold text-gray-900 mb-1">{farmer.name}</h2>
+                      {farmer.memberNumber && (
+                        <div className="flex items-center justify-center mb-2">
+                          <span className="font-mono text-sm bg-gray-100 px-3 py-1 rounded-full text-gray-700">
+                            {farmer.memberNumber}
+                          </span>
+                        </div>
+                      )}
                       <div className="flex items-center justify-center text-gray-500 mb-3">
                         <MapPin className="w-4 h-4 mr-1" />
                         <span className="text-sm">{farmer.county}, {farmer.subCounty}</span>

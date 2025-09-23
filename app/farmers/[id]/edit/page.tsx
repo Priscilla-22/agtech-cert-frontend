@@ -17,6 +17,7 @@ import { useState, useEffect } from "react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useRouter } from "next/navigation"
 import { api } from "@/lib/api-client"
+import { FARMING_EXPERIENCE, EDUCATION_LEVELS } from "@/lib/types/farmer-form"
 
 interface EditFarmerPageProps {
   params: { id: string }
@@ -358,11 +359,11 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
                           <SelectValue placeholder="Select experience" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="0-1">0-1 years</SelectItem>
-                          <SelectItem value="2-5">2-5 years</SelectItem>
-                          <SelectItem value="6-10">6-10 years</SelectItem>
-                          <SelectItem value="11-20">11-20 years</SelectItem>
-                          <SelectItem value="20+">20+ years</SelectItem>
+                          {FARMING_EXPERIENCE.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>
@@ -373,11 +374,11 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
                           <SelectValue placeholder="Select education level" />
                         </SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="none">None</SelectItem>
-                          <SelectItem value="primary">Primary</SelectItem>
-                          <SelectItem value="secondary">Secondary</SelectItem>
-                          <SelectItem value="tertiary">Tertiary</SelectItem>
-                          <SelectItem value="university">University</SelectItem>
+                          {EDUCATION_LEVELS.map((option) => (
+                            <SelectItem key={option.value} value={option.value}>
+                              {option.label}
+                            </SelectItem>
+                          ))}
                         </SelectContent>
                       </Select>
                     </div>

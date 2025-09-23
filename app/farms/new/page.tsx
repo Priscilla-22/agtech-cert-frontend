@@ -364,34 +364,51 @@ function NewFarmContent() {
         })
       }
 
-      // Prepare farm data for submission - only include fields that exist in farms table
+      // Prepare farm data for submission with all collected fields
       const submitData = {
         farmerId: farmerId,
         name: formData.name,
         location: formData.location,
+        county: formData.county,
+        ward: formData.ward,
+        village: formData.village,
         size: parseFloat(formData.size),
         cultivatedSize: formData.cultivatedSize ? parseFloat(formData.cultivatedSize) : undefined,
+        soilType: formData.soilType,
         cropTypes: selectedCrops,
+        irrigationSystem: formData.irrigationSystem,
+        landTenure: formData.landTenure,
+        waterSources: formData.waterSources,
+        description: formData.description,
       }
 
-      await createFarm(submitData)
-      
+      console.log("Submitting farm data:", submitData)
+
+      const result = await createFarm(submitData)
+      console.log("Farm creation result:", result)
+
+      if (result && result.error) {
+        throw new Error(result.error)
+      }
+
       toast({
         title: "Success",
-        description: farmerMode === 'new' 
-          ? "Farmer and farm registered successfully!" 
+        description: farmerMode === 'new'
+          ? "Farmer and farm registered successfully!"
           : "Farm registered successfully!",
       })
-      
+
       router.push("/farms")
     } catch (error) {
       console.error("Error creating farm:", error)
       toast({
         variant: "destructive",
         title: "Error",
-        description: farmerMode === 'new' 
-          ? "Failed to register farmer and farm. Please try again."
-          : "Failed to register farm. Please try again.",
+        description: error instanceof Error
+          ? error.message
+          : (farmerMode === 'new'
+            ? "Failed to register farmer and farm. Please try again."
+            : "Failed to register farm. Please try again."),
       })
     } finally {
       setLoading(false)

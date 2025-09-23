@@ -6,7 +6,14 @@ export const fetchFarmerById = async (id: string): Promise<Farmer | null> => {
 }
 
 export const updateFarmer = async (id: string, data: FarmerUpdateData): Promise<Farmer | null> => {
-  return await put(`/farmers/${id}`, data)
+  const result = await put(`/farmers/${id}`, data)
+
+  if (result && result.error) {
+    console.error(`Error updating farmer ${id}:`, result.error)
+    return null
+  }
+
+  return result
 }
 
 export const deleteFarmer = async (id: string): Promise<{ success: boolean; message?: string }> => {

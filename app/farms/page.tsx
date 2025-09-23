@@ -84,7 +84,7 @@ function FarmsContent() {
   const [certificationFilter, setCertificationFilter] = useState("all")
   const [currentPage, setCurrentPage] = useState(0)
   const [showFilters, setShowFilters] = useState(false)
-  const [viewMode, setViewMode] = useState<'cards' | 'table'>('cards')
+  const [viewMode, setViewMode] = useState<'cards' | 'table'>('table')
   const [currentUserId, setCurrentUserId] = useState<string | null>(null)
   const { toast } = useToast()
   const { userEmail } = useAuth()

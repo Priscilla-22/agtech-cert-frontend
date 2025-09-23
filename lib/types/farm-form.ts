@@ -21,7 +21,6 @@ export interface NewFarmerFormData {
   name: string
   email: string
   phone: string
-  alternatePhone: string
   idNumber: string
   dateOfBirth: string
   county: string

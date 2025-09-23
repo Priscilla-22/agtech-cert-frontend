@@ -61,7 +61,6 @@ function NewFarmContent() {
     name: "",
     email: "",
     phone: "",
-    alternatePhone: "",
     idNumber: "",
     dateOfBirth: "",
     county: "",

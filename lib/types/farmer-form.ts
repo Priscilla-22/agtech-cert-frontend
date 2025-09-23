@@ -3,7 +3,6 @@ export interface FarmerFormData {
   name: string
   email: string
   phone: string
-  alternatePhone: string
   idNumber: string
   dateOfBirth: string
 

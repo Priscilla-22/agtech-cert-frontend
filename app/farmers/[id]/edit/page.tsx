@@ -33,7 +33,6 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
     name: '',
     email: '',
     phone: '',
-    alternatePhone: '',
     idNumber: '',
     dateOfBirth: '',
 
@@ -78,7 +77,6 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
           name: farmerData.name || '',
           email: farmerData.email || '',
           phone: farmerData.phone || '',
-          alternatePhone: farmerData.alternatePhone || '',
           idNumber: farmerData.idNumber || '',
           dateOfBirth: farmerData.dateOfBirth || '',
           county: farmerData.county || '',
@@ -251,15 +249,6 @@ function EditFarmerContent({ params }: EditFarmerPageProps) {
                         onChange={(e) => handleInputChange('phone', e.target.value)}
                         placeholder="Enter phone number"
                         required
-                      />
-                    </div>
-                    <div className="space-y-2">
-                      <Label htmlFor="alternatePhone">Alternate Phone</Label>
-                      <Input
-                        id="alternatePhone"
-                        value={formData.alternatePhone}
-                        onChange={(e) => handleInputChange('alternatePhone', e.target.value)}
-                        placeholder="Enter alternate phone"
                       />
                     </div>
                     <div className="space-y-2">

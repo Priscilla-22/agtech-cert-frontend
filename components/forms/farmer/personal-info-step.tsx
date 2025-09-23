@@ -83,29 +83,16 @@ export function PersonalInfoStep({ formData, setFormData, errors }: PersonalInfo
           <p className="text-sm text-muted-foreground">Phone numbers for communication</p>
         </div>
 
-        <div className="grid gap-6 md:grid-cols-2">
-          <div className="space-y-3">
-            <Label htmlFor="phone" className="font-medium">Primary Phone Number *</Label>
-            <Input
-              id="phone"
-              value={formData.phone}
-              onChange={(e) => updateFormData('phone', e.target.value)}
-              placeholder="+254 700 123 456"
-              className={errors.phone ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}
-            />
-            {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
-          </div>
-
-          <div className="space-y-3">
-            <Label htmlFor="alternatePhone" className="font-medium">Alternate Phone</Label>
-            <Input
-              id="alternatePhone"
-              value={formData.alternatePhone}
-              onChange={(e) => updateFormData('alternatePhone', e.target.value)}
-              placeholder="+254 722 987 654"
-              className="border-green-200 focus:border-green-400 focus:ring-green-200"
-            />
-          </div>
+        <div className="space-y-3">
+          <Label htmlFor="phone" className="font-medium">Phone Number *</Label>
+          <Input
+            id="phone"
+            value={formData.phone}
+            onChange={(e) => updateFormData('phone', e.target.value)}
+            placeholder="+254 700 123 456"
+            className={errors.phone ? "border-red-500" : "border-green-200 focus:border-green-400 focus:ring-green-200"}
+          />
+          {errors.phone && <p className="text-sm text-red-500">{errors.phone}</p>}
         </div>
       </div>
     </div>

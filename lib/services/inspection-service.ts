@@ -24,20 +24,12 @@ export const createInspection = async (data: InspectionCreateData): Promise<Insp
 
 export const approveInspection = async (id: string): Promise<{ success: boolean; message?: string; certificateId?: number; error?: string }> => {
   try {
-    const response = await fetch(`/api/inspections/${id}/approve`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({})
-    })
-
-    const data = await response.json()
-
-    if (!response.ok) {
-      return { success: false, error: data.error || 'Approval failed' }
-    }
-
+    const data = await post(`/inspections/${id}/approve`, {})
     return { success: true, ...data }
   } catch (error) {
-    return { success: false, error: 'Network error' }
+    return {
+      success: false,
+      error: error instanceof Error ? error.message : 'Network error'
+    }
   }
 }

@@ -15,12 +15,14 @@ export default function RegisterPage() {
     firstName: "",
     lastName: "",
     email: "",
+    phone: "",
+    address: "",
     password: "",
     confirmPassword: "",
   })
   const [isLoading, setIsLoading] = useState(false)
   const router = useRouter()
-  const { signUp, signInWithGoogle } = useAuth()
+  const { signUp, signInWithGoogle, registerUserProfile } = useAuth()
 
   const handleInputChange = (field: string, value: string) => {
     setFormData((prev) => ({ ...prev, [field]: value }))
@@ -38,6 +40,13 @@ export default function RegisterPage() {
 
     try {
       await signUp(formData.email, formData.password)
+
+      await registerUserProfile({
+        name: `${formData.firstName} ${formData.lastName}`,
+        phone: formData.phone,
+        address: formData.address
+      })
+
       router.push("/dashboard")
     } catch (error) {
       console.error("Registration error:", error)
@@ -96,6 +105,32 @@ export default function RegisterPage() {
                 placeholder="john@example.com"
                 value={formData.email}
                 onChange={(e) => handleInputChange("email", e.target.value)}
+                required
+                className="h-12"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="phone" className="text-sm">Phone</Label>
+              <Input
+                id="phone"
+                type="tel"
+                placeholder="+254712345678"
+                value={formData.phone}
+                onChange={(e) => handleInputChange("phone", e.target.value)}
+                required
+                className="h-12"
+              />
+            </div>
+
+            <div className="space-y-2">
+              <Label htmlFor="address" className="text-sm">Address</Label>
+              <Input
+                id="address"
+                type="text"
+                placeholder="P.O Box 123, Nairobi"
+                value={formData.address}
+                onChange={(e) => handleInputChange("address", e.target.value)}
                 required
                 className="h-12"
               />

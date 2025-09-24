@@ -4,6 +4,7 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 import { User, onAuthStateChanged, signInWithEmailAndPassword, createUserWithEmailAndPassword, signOut, signInWithPopup, sendEmailVerification } from 'firebase/auth';
 import { auth, googleProvider } from '@/lib/firebase';
 import { toast } from '@/hooks/use-toast';
+import { API_CONFIG } from '@/lib/config';
 
 interface AuthContextType {
   user: User | null;
@@ -173,7 +174,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     try {
       const token = await user.getIdToken();
 
-      const response = await fetch('/api/auth/register', {
+      const response = await fetch(`${API_CONFIG.BASE_URL}/auth/register`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

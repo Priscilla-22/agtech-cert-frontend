@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix: inspection">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/app/certificates/new/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/certificates/new/page.tsx" afterDir="false" />
-    </list>
+    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix: generate cert" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -104,7 +101,7 @@
       <workItem from="1758280536447" duration="7092000" />
       <workItem from="1758300180958" duration="80654000" />
       <workItem from="1758545240826" duration="44968000" />
-      <workItem from="1758704846014" duration="13520000" />
+      <workItem from="1758704846014" duration="14042000" />
     </task>
     <task id="LOCAL-00001" summary="commit">
       <option name="closed" value="true" />
@@ -490,14 +487,21 @@
       <option name="project" value="LOCAL" />
       <updated>1758727604223</updated>
     </task>
-    <option name="localTasksCounter" value="49" />
+    <task id="LOCAL-00049" summary="fix: generate cert">
+      <option name="closed" value="true" />
+      <created>1758729785739</created>
+      <option name="number" value="00049" />
+      <option name="presentableId" value="LOCAL-00049" />
+      <option name="project" value="LOCAL" />
+      <updated>1758729785739</updated>
+    </task>
+    <option name="localTasksCounter" value="50" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: get farms by farmer" />
     <MESSAGE value="&#10;feat:responsive" />
     <MESSAGE value="&#10;chore change the url" />
     <MESSAGE value="&#10;chore:url change" />
@@ -522,7 +526,8 @@
     <MESSAGE value="fix: inspector" />
     <MESSAGE value="fix: inspections" />
     <MESSAGE value="fix: inspection" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: inspection" />
+    <MESSAGE value="fix: generate cert" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: generate cert" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
   <component name="XDebuggerManager">

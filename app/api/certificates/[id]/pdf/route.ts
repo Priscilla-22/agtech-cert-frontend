@@ -1,11 +1,31 @@
 import { type NextRequest, NextResponse } from "next/server"
 import { API_CONFIG } from "@/lib/config"
+import { auth } from "@/lib/firebase"
 
-export async function GET(_request: NextRequest, { params }: { params: { id: string } }) {
+const getAuthHeaders = async (request: NextRequest): Promise<Record<string, string>> => {
+  const headers: Record<string, string> = {}
+
+  // Try to get auth header from the request
+  const authHeader = request.headers.get('authorization')
+  if (authHeader) {
+    headers.Authorization = authHeader
+  }
+
+  return headers
+}
+
+export async function GET(request: NextRequest, { params }: { params: { id: string } }) {
   try {
+    // Get authentication headers
+    const authHeaders = await getAuthHeaders(request)
+
     // Proxy to backend PDF endpoint to use PDFService
     const backendUrl = `${API_CONFIG.BASE_URL}/certificates/${params.id}/pdf`
-    const response = await fetch(backendUrl)
+    const response = await fetch(backendUrl, {
+      headers: {
+        ...authHeaders
+      }
+    })
 
     if (!response.ok) {
       if (response.status === 404) {

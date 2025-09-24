@@ -107,8 +107,7 @@ const columns: ColumnDef<Certificate>[] = [
           document.body.removeChild(a)
         } catch (error) {
           console.error('Download failed:', error)
-          // Fallback to window.open
-          window.open(`/api/certificates/${certificate.id}/pdf`, '_blank')
+          alert('Failed to download certificate PDF. Please try again.')
         }
       }
 

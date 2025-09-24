@@ -180,10 +180,7 @@ export default function LoginPage() {
                 <span className="relative z-10 font-semibold">{isGoogleLoading ? "Signing in..." : "Continue with Google"}</span>
               </Button>
 
-              <div className="mt-8 text-center space-y-4">
-                <Link href="/forgot-password" className="text-sm text-primary hover:text-primary/80 transition-colors block font-medium hover:underline underline-offset-4">
-                  Forgot your password?
-                </Link>
+              <div className="mt-8 text-center">
                 <div className="text-sm text-muted-foreground">
                   Don't have an account?{" "}
                   <Link href="/register" className="text-primary hover:text-primary/80 transition-colors font-semibold hover:underline underline-offset-4">

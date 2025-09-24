@@ -1,9 +1,30 @@
 import { API_CONFIG } from '@/lib/config'
+import { auth } from '@/lib/firebase'
+
+const getAuthHeaders = async (): Promise<Record<string, string>> => {
+  const headers: Record<string, string> = {}
+
+  if (auth.currentUser) {
+    try {
+      const token = await auth.currentUser.getIdToken()
+      headers.Authorization = `Bearer ${token}`
+    } catch (error) {
+      console.error('Error getting Firebase token:', error)
+    }
+  }
+
+  return headers
+}
 
 export const get = async (endpoint: string, options?: RequestInit): Promise<any> => {
   try {
+    const authHeaders = await getAuthHeaders()
     const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'GET',
+      headers: {
+        ...authHeaders,
+        ...options?.headers
+      },
       ...options,
     })
     return response.ok ? await response.json() : null
@@ -14,9 +35,14 @@ export const get = async (endpoint: string, options?: RequestInit): Promise<any>
 
 export const post = async (endpoint: string, data: any, options?: RequestInit): Promise<any> => {
   try {
+    const authHeaders = await getAuthHeaders()
     const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders,
+        ...options?.headers
+      },
       body: JSON.stringify(data),
       ...options,
     })
@@ -40,9 +66,14 @@ export const post = async (endpoint: string, data: any, options?: RequestInit): 
 
 export const put = async (endpoint: string, data: any, options?: RequestInit): Promise<any> => {
   try {
+    const authHeaders = await getAuthHeaders()
     const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...authHeaders,
+        ...options?.headers
+      },
       body: JSON.stringify(data),
       ...options,
     })
@@ -66,8 +97,13 @@ export const put = async (endpoint: string, data: any, options?: RequestInit): P
 
 export const del = async (endpoint: string, options?: RequestInit): Promise<boolean> => {
   try {
+    const authHeaders = await getAuthHeaders()
     const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'DELETE',
+      headers: {
+        ...authHeaders,
+        ...options?.headers
+      },
       ...options,
     })
     return response.ok
@@ -78,8 +114,13 @@ export const del = async (endpoint: string, options?: RequestInit): Promise<bool
 
 export const getList = async (endpoint: string, options?: RequestInit): Promise<any[]> => {
   try {
+    const authHeaders = await getAuthHeaders()
     const response = await fetch(`${API_CONFIG.BASE_URL}${endpoint}`, {
       method: 'GET',
+      headers: {
+        ...authHeaders,
+        ...options?.headers
+      },
       cache: 'no-store',
       ...options,
     })

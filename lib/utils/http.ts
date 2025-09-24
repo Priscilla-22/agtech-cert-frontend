@@ -4,13 +4,18 @@ import { auth } from '@/lib/firebase'
 const getAuthHeaders = async (): Promise<Record<string, string>> => {
   const headers: Record<string, string> = {}
 
+  console.log('getAuthHeaders - Current user:', auth.currentUser?.uid)
+
   if (auth.currentUser) {
     try {
       const token = await auth.currentUser.getIdToken()
+      console.log('getAuthHeaders - Token acquired, length:', token?.length)
       headers.Authorization = `Bearer ${token}`
     } catch (error) {
       console.error('Error getting Firebase token:', error)
     }
+  } else {
+    console.warn('getAuthHeaders - No current user found')
   }
 
   return headers
@@ -27,9 +32,21 @@ export const get = async (endpoint: string, options?: RequestInit): Promise<any>
       },
       ...options,
     })
-    return response.ok ? await response.json() : null
-  } catch {
-    return null
+
+    if (response.ok) {
+      return await response.json()
+    } else {
+      const errorData = await response.text()
+      console.error(`GET ${endpoint} failed:`, {
+        status: response.status,
+        statusText: response.statusText,
+        error: errorData
+      })
+      return { error: `HTTP ${response.status}: ${response.statusText}` }
+    }
+  } catch (error) {
+    console.error(`GET ${endpoint} network error:`, error)
+    return { error: 'Network error occurred' }
   }
 }
 

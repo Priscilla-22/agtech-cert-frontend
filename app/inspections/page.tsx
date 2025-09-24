@@ -242,13 +242,41 @@ function GenerateCertificateButton({ inspection, onStatusChange }: { inspection:
     try {
       const data = await api.inspections.approve(inspection.id.toString(), {})
 
-      // The API client returns JSON data, not a response object
-      toast({
-        title: "Certificate Generated Successfully!",
-        description: data.certificate?.certificateNumber
-          ? `Certificate #${data.certificate.certificateNumber} has been generated.`
-          : "Certificate generation completed successfully."
-      })
+      // Check if we got a PDF blob
+      if (data.pdfBlob) {
+        console.log('Received PDF blob, size:', data.pdfBlob.size)
+
+        // Trigger PDF download
+        const url = URL.createObjectURL(data.pdfBlob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `certificate-inspection-${inspection.id}.pdf`
+        a.target = '_blank'
+        a.style.display = 'none'
+        document.body.appendChild(a)
+
+        console.log('Triggering PDF download...')
+        a.click()
+
+        // Clean up
+        setTimeout(() => {
+          URL.revokeObjectURL(url)
+          document.body.removeChild(a)
+        }, 100)
+
+        toast({
+          title: "Certificate Generated & Downloaded!",
+          description: "The certificate PDF has been generated and downloaded to your device."
+        })
+      } else {
+        // Fallback for JSON response
+        toast({
+          title: "Certificate Generated Successfully!",
+          description: data.certificate?.certificateNumber
+            ? `Certificate #${data.certificate.certificateNumber} has been generated.`
+            : "Certificate generation completed successfully."
+        })
+      }
 
       // Refresh the inspections list
       setTimeout(() => {

@@ -278,11 +278,34 @@ class ApiClient {
       })
     },
 
-    approve: (id: string, data: any) => {
-      return this.request(API_ENDPOINTS.INSPECTIONS.APPROVE(id), {
+    approve: async (id: string, data: any) => {
+      const url = this.buildUrl(API_ENDPOINTS.INSPECTIONS.APPROVE(id))
+      const authHeaders = await this.getAuthHeaders()
+
+      const response = await fetch(url, {
         method: HTTP_METHODS.POST,
+        headers: {
+          'Content-Type': 'application/json',
+          ...authHeaders,
+        },
         body: JSON.stringify(data),
       })
+
+      if (!response.ok) {
+        const errorText = await response.text()
+        throw new Error(errorText || `HTTP ${response.status}: ${response.statusText}`)
+      }
+
+      // Check if response is PDF
+      const contentType = response.headers.get('content-type')
+      if (contentType?.includes('application/pdf')) {
+        // Return the blob for PDF download
+        const blob = await response.blob()
+        return { success: true, pdfBlob: blob }
+      } else {
+        // Parse as JSON for other responses
+        return await response.json()
+      }
     },
 
     reject: (id: string, data: { reason: string }) => {

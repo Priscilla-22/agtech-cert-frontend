@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix:cert">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/api-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/api-client.ts" afterDir="false" />
-    </list>
+    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix:certs" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -104,15 +101,7 @@
       <workItem from="1758280536447" duration="7092000" />
       <workItem from="1758300180958" duration="80654000" />
       <workItem from="1758545240826" duration="44968000" />
-      <workItem from="1758704846014" duration="16851000" />
-    </task>
-    <task id="LOCAL-00006" summary="feat:certification">
-      <option name="closed" value="true" />
-      <created>1758178919724</created>
-      <option name="number" value="00006" />
-      <option name="presentableId" value="LOCAL-00006" />
-      <option name="project" value="LOCAL" />
-      <updated>1758178919724</updated>
+      <workItem from="1758704846014" duration="17389000" />
     </task>
     <task id="LOCAL-00007" summary="feat: material tailwind ui">
       <option name="closed" value="true" />
@@ -498,14 +487,21 @@
       <option name="project" value="LOCAL" />
       <updated>1758736933137</updated>
     </task>
-    <option name="localTasksCounter" value="55" />
+    <task id="LOCAL-00055" summary="fix:certs">
+      <option name="closed" value="true" />
+      <created>1758737435995</created>
+      <option name="number" value="00055" />
+      <option name="presentableId" value="LOCAL-00055" />
+      <option name="project" value="LOCAL" />
+      <updated>1758737435995</updated>
+    </task>
+    <option name="localTasksCounter" value="56" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="&#10;chore:url change" />
     <MESSAGE value="&#10;chore:table as default" />
     <MESSAGE value="&#10;feat: add registered farms" />
     <MESSAGE value="&#10;feat:  farmer edit" />
@@ -530,7 +526,8 @@
     <MESSAGE value="fix: generate certs" />
     <MESSAGE value="logs" />
     <MESSAGE value="fix:cert" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix:cert" />
+    <MESSAGE value="fix:certs" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix:certs" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
   <component name="XDebuggerManager">

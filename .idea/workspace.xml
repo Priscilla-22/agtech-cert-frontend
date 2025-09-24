@@ -4,7 +4,10 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix: generate certs" />
+    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix:cert">
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/lib/api-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/api-client.ts" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -101,23 +104,7 @@
       <workItem from="1758280536447" duration="7092000" />
       <workItem from="1758300180958" duration="80654000" />
       <workItem from="1758545240826" duration="44968000" />
-      <workItem from="1758704846014" duration="15772000" />
-    </task>
-    <task id="LOCAL-00004" summary="font family">
-      <option name="closed" value="true" />
-      <created>1757970137713</created>
-      <option name="number" value="00004" />
-      <option name="presentableId" value="LOCAL-00004" />
-      <option name="project" value="LOCAL" />
-      <updated>1757970137713</updated>
-    </task>
-    <task id="LOCAL-00005" summary="feat:farm management">
-      <option name="closed" value="true" />
-      <created>1758023751566</created>
-      <option name="number" value="00005" />
-      <option name="presentableId" value="LOCAL-00005" />
-      <option name="project" value="LOCAL" />
-      <updated>1758023751566</updated>
+      <workItem from="1758704846014" duration="16851000" />
     </task>
     <task id="LOCAL-00006" summary="feat:certification">
       <option name="closed" value="true" />
@@ -495,14 +482,29 @@
       <option name="project" value="LOCAL" />
       <updated>1758735837333</updated>
     </task>
-    <option name="localTasksCounter" value="53" />
+    <task id="LOCAL-00053" summary="logs">
+      <option name="closed" value="true" />
+      <created>1758736377934</created>
+      <option name="number" value="00053" />
+      <option name="presentableId" value="LOCAL-00053" />
+      <option name="project" value="LOCAL" />
+      <updated>1758736377934</updated>
+    </task>
+    <task id="LOCAL-00054" summary="fix:cert">
+      <option name="closed" value="true" />
+      <created>1758736933137</created>
+      <option name="number" value="00054" />
+      <option name="presentableId" value="LOCAL-00054" />
+      <option name="project" value="LOCAL" />
+      <updated>1758736933137</updated>
+    </task>
+    <option name="localTasksCounter" value="55" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="&#10;chore change the url" />
     <MESSAGE value="&#10;chore:url change" />
     <MESSAGE value="&#10;chore:table as default" />
     <MESSAGE value="&#10;feat: add registered farms" />
@@ -517,7 +519,6 @@
     <MESSAGE value="feat: post user to db" />
     <MESSAGE value="feat: automatic login" />
     <MESSAGE value="remove unused feat" />
-    <MESSAGE value="logs" />
     <MESSAGE value="auth test" />
     <MESSAGE value="fix:farmers details page" />
     <MESSAGE value="fix:api client import" />
@@ -527,7 +528,9 @@
     <MESSAGE value="fix: inspection" />
     <MESSAGE value="fix: generate cert" />
     <MESSAGE value="fix: generate certs" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: generate certs" />
+    <MESSAGE value="logs" />
+    <MESSAGE value="fix:cert" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix:cert" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
   <component name="XDebuggerManager">

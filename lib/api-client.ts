@@ -326,12 +326,18 @@ class ApiClient {
 
     downloadPDF: async (id: string): Promise<Blob> => {
       const url = this.buildUrl(API_ENDPOINTS.CERTIFICATES.PDF(id))
-      const response = await fetch(url)
-      
+      const authHeaders = await this.getAuthHeaders()
+
+      const response = await fetch(url, {
+        headers: {
+          ...authHeaders,
+        },
+      })
+
       if (!response.ok) {
         throw new Error('Failed to download certificate PDF')
       }
-      
+
       return response.blob()
     },
   }

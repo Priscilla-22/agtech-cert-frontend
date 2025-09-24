@@ -96,15 +96,34 @@ const columns: ColumnDef<Certificate>[] = [
 
       async function downloadPDF() {
         try {
+          console.log('Starting PDF download for certificate:', certificate.id)
           const blob = await api.certificates.downloadPDF(certificate.id.toString())
+          console.log('PDF blob received, size:', blob.size, 'type:', blob.type)
+
+          // Ensure we have a valid PDF blob
+          if (blob.size === 0) {
+            throw new Error('Received empty PDF file')
+          }
+
           const url = URL.createObjectURL(blob)
           const a = document.createElement('a')
           a.href = url
           a.download = `certificate-${certificate.certificateNumber || certificate.id}.pdf`
+          a.target = '_blank'
+
+          // Make the link visible and add to DOM
+          a.style.display = 'none'
           document.body.appendChild(a)
+
+          console.log('Triggering download...')
           a.click()
-          URL.revokeObjectURL(url)
-          document.body.removeChild(a)
+
+          // Clean up after a short delay
+          setTimeout(() => {
+            URL.revokeObjectURL(url)
+            document.body.removeChild(a)
+            console.log('Download cleanup completed')
+          }, 100)
         } catch (error) {
           console.error('Download failed:', error)
           alert('Failed to download certificate PDF. Please try again.')

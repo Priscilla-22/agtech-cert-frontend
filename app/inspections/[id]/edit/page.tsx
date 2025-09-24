@@ -20,6 +20,7 @@ import ProtectedRoute from "@/components/ProtectedRoute"
 import { useToast } from "@/hooks/use-toast"
 import { approveInspection } from "@/lib/services/inspection-service"
 import { fetchAllInspectors } from "@/lib/services/inspector-service"
+import { api } from "@/lib/api-client"
 
 interface EditInspectionPageProps {
   params: { id: string }
@@ -109,8 +110,15 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
     const fetchData = async () => {
       try {
         // Fetch inspection and inspectors in parallel
-        const [inspectionResponse, inspectorsData] = await Promise.all([
-          fetch(`/api/inspections/${params.id}`),
+        const [inspectionData, inspectorsData] = await Promise.all([
+          api.inspections.getById(params.id).catch(err => {
+            console.error('Error fetching inspection:', err)
+            if (err?.status === 404) {
+              notFound()
+              return null
+            }
+            throw err
+          }),
           fetchAllInspectors().catch(err => {
             console.error('Error fetching inspectors:', err)
             return []
@@ -118,15 +126,10 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
         ])
 
         // Handle inspection response
-        if (!inspectionResponse.ok) {
-          if (inspectionResponse.status === 404) {
-            notFound()
-            return
-          }
-          throw new Error('Failed to fetch inspection')
+        if (!inspectionData) {
+          notFound()
+          return
         }
-
-        const inspectionData = await inspectionResponse.json()
         setInspection(inspectionData)
 
         // Set inspectors
@@ -206,20 +209,7 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
         ...(finalStatus === 'completed' && { inspectionDate: new Date().toISOString().split('T')[0] })
       }
 
-      const response = await fetch(`/api/inspections/${params.id}`, {
-        method: 'PUT',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(updateData)
-      })
-
-      if (!response.ok) {
-        const errorData = await response.json().catch(() => ({ error: 'Unknown error' }))
-        throw new Error(`Failed to update inspection: ${errorData.error || response.statusText}`)
-      }
-
-      const result = await response.json()
+      const result = await api.inspections.update(params.id, updateData)
 
       // Check if certificate was automatically generated
       if (result.certificateGenerated && result.certificate) {

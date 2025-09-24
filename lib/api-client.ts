@@ -1,4 +1,5 @@
 import { API_CONFIG, API_ENDPOINTS, HTTP_METHODS } from './config'
+import { auth } from './firebase'
 
 export interface ApiResponse<T = any> {
   data?: T
@@ -38,7 +39,7 @@ class ApiClient {
       const fullUrl = this.baseUrl + endpoint
       url = new URL(fullUrl, window.location.origin)
     }
-    
+
     if (params) {
       Object.entries(params).forEach(([key, value]) => {
         if (value !== undefined && value !== null && value !== '') {
@@ -46,21 +47,45 @@ class ApiClient {
         }
       })
     }
-    
+
     return url.toString()
   }
 
+  private async getAuthHeaders(): Promise<Record<string, string>> {
+    const headers: Record<string, string> = {}
+
+    // Wait for Firebase auth to be ready
+    return new Promise((resolve) => {
+      const unsubscribe = auth.onAuthStateChanged(async (user) => {
+        unsubscribe() // Clean up the listener
+
+        if (user) {
+          try {
+            const token = await user.getIdToken()
+            headers.Authorization = `Bearer ${token}`
+          } catch (error) {
+            console.error('Error getting Firebase token:', error)
+          }
+        }
+
+        resolve(headers)
+      })
+    })
+  }
+
   private async request<T = any>(
-    endpoint: string, 
+    endpoint: string,
     options: RequestInit = {},
     params?: QueryParams
   ): Promise<T> {
     const url = this.buildUrl(endpoint, params)
-    
+    const authHeaders = await this.getAuthHeaders()
+
     const config: RequestInit = {
       ...options,
       headers: {
         'Content-Type': 'application/json',
+        ...authHeaders,
         ...options.headers,
       },
     }

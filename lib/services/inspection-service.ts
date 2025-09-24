@@ -1,5 +1,6 @@
 import { get, post, put, del, getList } from '@/lib/utils/http'
 import { Inspection, InspectionUpdateData, InspectionCreateData } from '@/lib/types/inspection'
+import { api } from '@/lib/api-client'
 
 export const fetchInspectionById = async (id: string): Promise<Inspection | null> => {
   return await get(`/inspections/${id}`)
@@ -24,7 +25,7 @@ export const createInspection = async (data: InspectionCreateData): Promise<Insp
 
 export const approveInspection = async (id: string): Promise<{ success: boolean; message?: string; certificateId?: number; error?: string }> => {
   try {
-    const data = await post(`/inspections/${id}/approve`, {})
+    const data = await api.inspections.approve(id, {})
     return { success: true, ...data }
   } catch (error) {
     return {

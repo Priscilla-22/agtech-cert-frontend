@@ -14,6 +14,7 @@ import { ArrowLeft, Award } from "lucide-react"
 import Link from "next/link"
 import { useState, useEffect } from "react"
 import { API_ENDPOINTS } from "@/lib/config"
+import { api } from "@/lib/api-client"
 
 export default function NewCertificatePage() {
   const [formData, setFormData] = useState({
@@ -30,18 +31,13 @@ export default function NewCertificatePage() {
   useEffect(() => {
     async function loadData() {
       try {
-        const farmersResponse = await fetch('/api/farmers')
-        const farmsResponse = await fetch('/api/farms')
+        const [farmersData, farmsData] = await Promise.all([
+          api.farmers.getAll().catch(() => ({ data: [] })),
+          api.farms.getAll().catch(() => [])
+        ])
 
-        if (farmersResponse.ok) {
-          const farmersData = await farmersResponse.json()
-          setFarmers(farmersData || [])
-        }
-
-        if (farmsResponse.ok) {
-          const farmsData = await farmsResponse.json()
-          setFarms(farmsData || [])
-        }
+        setFarmers(farmersData?.data || [])
+        setFarms(Array.isArray(farmsData) ? farmsData : [])
       } catch (error) {
         // Handle error silently
       }
@@ -94,18 +90,7 @@ export default function NewCertificatePage() {
     try {
       setIsSubmitting(true)
 
-      const response = await fetch(`/api/${API_ENDPOINTS.CERTIFICATES.CREATE}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(formData)
-      })
-
-      if (!response.ok) {
-        const error = await response.json()
-        throw new Error(error.error || 'Failed to create certificate')
-      }
-
-      const certificate = await response.json()
+      const certificate = await api.certificates.create(formData)
       const certNumber = certificate.certificateNumber || 'Unknown'
       alert(`Certificate ${certNumber} created successfully!`)
 

@@ -1,6 +1,7 @@
 import { API_CONFIG, API_ENDPOINTS, HTTP_METHODS } from './config'
 import { auth } from './firebase'
 
+
 export interface ApiResponse<T = any> {
   data?: T
   error?: string

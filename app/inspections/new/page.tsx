@@ -138,18 +138,10 @@ export default function NewInspectionPage() {
 
       console.log('Submitting inspection data:', submissionData)
 
-      const response = await fetch('/api/inspections', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify(submissionData),
-      })
-
-      const responseData = await response.json()
+      const responseData = await api.inspections.create(submissionData)
       console.log('Response:', responseData)
 
-      if (response.ok) {
+      if (responseData && !responseData.error) {
         toast({
           title: "Success",
           description: "Inspection scheduled successfully!",
@@ -157,19 +149,12 @@ export default function NewInspectionPage() {
         router.push('/inspections')
       } else {
         console.error("Failed to schedule inspection:", responseData)
-        if (responseData.errors && Array.isArray(responseData.errors)) {
-          toast({
-            title: "Failed to schedule inspection",
-            description: responseData.errors.join(', '),
-            variant: "destructive"
-          })
-        } else {
-          toast({
-            title: "Failed to schedule inspection",
-            description: responseData.error || 'Unknown error',
-            variant: "destructive"
-          })
-        }
+        const errorMessage = responseData?.error || responseData?.message || 'Unknown error'
+        toast({
+          title: "Failed to schedule inspection",
+          description: errorMessage,
+          variant: "destructive"
+        })
       }
     } catch (error) {
       console.error("Error scheduling inspection:", error)

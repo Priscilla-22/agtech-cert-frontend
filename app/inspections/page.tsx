@@ -18,6 +18,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import { API_ENDPOINTS, API_BASE_URL } from "@/lib/config"
+import { api } from "@/lib/api-client"
 
 function StatusChangeDialog({
   inspection,
@@ -512,19 +513,18 @@ function InspectionsContent() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch(`/api/${API_ENDPOINTS.INSPECTIONS.LIST}?t=${Date.now()}`, {
-        cache: 'no-cache',
-        headers: {
-          'Cache-Control': 'no-cache'
-        }
-      })
-      if (!response.ok) {
-        throw new Error('Failed to fetch inspections')
-      }
-
-      const inspectionsData = await response.json()
+      const inspectionsData = await api.inspections.getAll()
       console.log('Raw inspections data from API:', inspectionsData)
-      console.log('Status distribution:', inspectionsData.map(i => i.status))
+
+      if (Array.isArray(inspectionsData)) {
+        console.log('Status distribution:', inspectionsData.map(i => i.status))
+        setInspections(inspectionsData)
+      } else {
+        // Handle wrapped response format
+        const inspections = inspectionsData.data || inspectionsData || []
+        console.log('Status distribution:', inspections.map(i => i.status))
+        setInspections(inspections)
+      }
 
       // Also fetch status distribution for debugging
       try {
@@ -536,8 +536,6 @@ function InspectionsContent() {
       } catch (statusError) {
         console.warn('Could not fetch status distribution:', statusError)
       }
-
-      setInspections(inspectionsData)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch inspections')
       console.error('Inspections fetch error:', err)

@@ -2,7 +2,7 @@ const isClient = typeof window !== 'undefined'
 
 // export const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL || 'https://agtech-cert-backend.onrender.com/api'
 const baseUrl = process.env.NEXT_PUBLIC_API_URL ||
-    'https://agtech-cert-backend.onrender.com'
+    'https://agtech-cert-backend-1.onrender.com'
  export const API_BASE_URL = baseUrl.endsWith('/api') ? baseUrl : `${baseUrl}/api`
 
 export const API_CONFIG = {

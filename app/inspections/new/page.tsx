@@ -62,7 +62,7 @@ export default function NewInspectionPage() {
         const [farmersRes, farmsRes, inspectorsRes] = await Promise.all([
           api.farmers.getAll(),
           api.farms.getAll(),
-          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://agtech-cert-backend.onrender.com'}/api/inspectors`, {
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://agtech-cert-backend-1.onrender.com'}/api/inspectors`, {
             headers: await getAuthHeaders()
           })
         ])

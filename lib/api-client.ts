@@ -98,8 +98,11 @@ class ApiClient {
     config.signal = controller.signal
 
     try {
+      console.log('DEBUG API: Making request to:', url)
+      console.log('DEBUG API: Request headers:', config.headers)
       const response = await fetch(url, config)
       clearTimeout(timeoutId)
+      console.log('DEBUG API: Response status:', response.status)
 
       if (!response.ok) {
         let errorMessage = `HTTP ${response.status}: ${response.statusText}`

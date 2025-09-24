@@ -240,62 +240,15 @@ function GenerateCertificateButton({ inspection, onStatusChange }: { inspection:
     setGenerating(true)
 
     try {
-      const response = await fetch(`${API_BASE_URL}/inspections/${inspection.id}/approve`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({})
+      const data = await api.inspections.approve(inspection.id.toString(), {})
+
+      // The API client returns JSON data, not a response object
+      toast({
+        title: "Certificate Generated Successfully!",
+        description: data.certificate?.certificateNumber
+          ? `Certificate #${data.certificate.certificateNumber} has been generated.`
+          : "Certificate generation completed successfully."
       })
-
-      if (!response.ok) {
-        // Try to parse error message
-        try {
-          const errorData = await response.json()
-          throw new Error(errorData.error || 'Certificate generation failed')
-        } catch {
-          throw new Error('Certificate generation failed')
-        }
-      }
-
-      // Check if response is PDF
-      const contentType = response.headers.get('content-type')
-      if (contentType === 'application/pdf') {
-        // Handle PDF download
-        const blob = await response.blob()
-        const url = window.URL.createObjectURL(blob)
-        const a = document.createElement('a')
-        a.style.display = 'none'
-        a.href = url
-
-        // Extract filename from Content-Disposition header
-        const contentDisposition = response.headers.get('content-disposition')
-        let filename = 'certificate.pdf'
-        if (contentDisposition) {
-          const filenameMatch = contentDisposition.match(/filename="(.+)"/)
-          if (filenameMatch) {
-            filename = filenameMatch[1]
-          }
-        }
-
-        a.download = filename
-        document.body.appendChild(a)
-        a.click()
-        window.URL.revokeObjectURL(url)
-        document.body.removeChild(a)
-
-        toast({
-          title: "Certificate Generated Successfully!",
-          description: `Certificate has been generated and downloaded automatically.`
-        })
-      } else {
-        // Fallback for JSON response
-        const data = await response.json()
-        toast({
-          title: "Certificate Generated Successfully!",
-          description: data.certificate?.certificateNumber
-            ? `Certificate #${data.certificate.certificateNumber} has been generated.`
-            : "Certificate generation completed successfully."
-        })
-      }
 
       // Refresh the inspections list
       setTimeout(() => {

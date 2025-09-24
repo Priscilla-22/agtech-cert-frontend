@@ -77,7 +77,8 @@ export default function NewInspectionPage() {
 
         if (inspectorsRes.ok) {
           const inspectorsData = await inspectorsRes.json()
-          setInspectors(inspectorsData.data || inspectorsData)
+          const inspectorsArray = inspectorsData.data || inspectorsData || []
+          setInspectors(Array.isArray(inspectorsArray) ? inspectorsArray : [])
         }
       } catch (error) {
         console.error('Error fetching data:', error)

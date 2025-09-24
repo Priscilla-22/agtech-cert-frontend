@@ -37,7 +37,7 @@ function InspectorsContent() {
       setError(null)
 
       const data = await fetchAllInspectors()
-      setInspectors(data || [])
+      setInspectors(Array.isArray(data) ? data : [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch inspectors')
       console.error('Inspectors fetch error:', err)

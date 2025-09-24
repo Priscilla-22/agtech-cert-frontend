@@ -4,8 +4,9 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix:farmers details page">
+    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix:api client import">
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/app/inspections/new/page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/app/inspections/new/page.tsx" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -103,7 +104,7 @@
       <workItem from="1758280536447" duration="7092000" />
       <workItem from="1758300180958" duration="80654000" />
       <workItem from="1758545240826" duration="44968000" />
-      <workItem from="1758704846014" duration="7430000" />
+      <workItem from="1758704846014" duration="7897000" />
     </task>
     <task id="LOCAL-00001" summary="commit">
       <option name="closed" value="true" />
@@ -417,14 +418,21 @@
       <option name="project" value="LOCAL" />
       <updated>1758716014311</updated>
     </task>
-    <option name="localTasksCounter" value="40" />
+    <task id="LOCAL-00040" summary="fix:api client import">
+      <option name="closed" value="true" />
+      <created>1758719063290</created>
+      <option name="number" value="00040" />
+      <option name="presentableId" value="LOCAL-00040" />
+      <option name="project" value="LOCAL" />
+      <updated>1758719063290</updated>
+    </task>
+    <option name="localTasksCounter" value="41" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="deploy" />
     <MESSAGE value="chore: readme" />
     <MESSAGE value="chore:remove uneccessary fields" />
     <MESSAGE value="chore" />
@@ -449,7 +457,8 @@
     <MESSAGE value="logs" />
     <MESSAGE value="auth test" />
     <MESSAGE value="fix:farmers details page" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix:farmers details page" />
+    <MESSAGE value="fix:api client import" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix:api client import" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
   <component name="XDebuggerManager">

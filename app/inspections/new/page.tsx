@@ -18,6 +18,7 @@ import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
 import { api } from "@/lib/api-client"
+import { auth } from "@/lib/firebase"
 
 export default function NewInspectionPage() {
   const { user, loading: authLoading } = useAuth()
@@ -36,6 +37,24 @@ export default function NewInspectionPage() {
   const [loading, setLoading] = useState(true)
   const [submitting, setSubmitting] = useState(false)
 
+  const getAuthHeaders = async (): Promise<Record<string, string>> => {
+    const headers: Record<string, string> = {}
+    return new Promise((resolve) => {
+      const unsubscribe = auth.onAuthStateChanged(async (user) => {
+        unsubscribe()
+        if (user) {
+          try {
+            const token = await user.getIdToken()
+            headers.Authorization = `Bearer ${token}`
+          } catch (error) {
+            console.error('Error getting Firebase token:', error)
+          }
+        }
+        resolve(headers)
+      })
+    })
+  }
+
   // Fetch farmers, farms, and inspectors data
   useEffect(() => {
     const fetchData = async () => {
@@ -43,7 +62,9 @@ export default function NewInspectionPage() {
         const [farmersRes, farmsRes, inspectorsRes] = await Promise.all([
           api.farmers.getAll(),
           api.farms.getAll(),
-          fetch('/api/inspectors')  // Keep this as is since there's no inspector API in api-client yet
+          fetch(`${process.env.NEXT_PUBLIC_API_BASE_URL || 'https://agtech-cert-backend.onrender.com'}/api/inspectors`, {
+            headers: await getAuthHeaders()
+          })
         ])
 
         if (farmersRes && farmersRes.data) {

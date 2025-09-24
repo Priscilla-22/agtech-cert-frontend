@@ -61,11 +61,14 @@ class ApiClient {
 
         if (user) {
           try {
-            const token = await user.getIdToken()
+            const token = await user.getIdToken(true) // Force refresh
             headers.Authorization = `Bearer ${token}`
+            console.log('DEBUG: Got Firebase token, user:', user.email)
           } catch (error) {
             console.error('Error getting Firebase token:', error)
           }
+        } else {
+          console.log('DEBUG: No user logged in')
         }
 
         resolve(headers)

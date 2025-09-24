@@ -19,6 +19,7 @@ import { useRouter } from "next/navigation"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useToast } from "@/hooks/use-toast"
 import { approveInspection } from "@/lib/services/inspection-service"
+import { fetchAllInspectors } from "@/lib/services/inspector-service"
 
 interface EditInspectionPageProps {
   params: { id: string }
@@ -95,6 +96,7 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
   const [newViolation, setNewViolation] = useState('')
   const [status, setStatus] = useState('scheduled')
   const [inspectorName, setInspectorName] = useState('')
+  const [inspectors, setInspectors] = useState<any[]>([])
 
   // Auth check
   useEffect(() => {
@@ -104,24 +106,35 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
   }, [user, authLoading, router])
 
   useEffect(() => {
-    const fetchInspection = async () => {
+    const fetchData = async () => {
       try {
-        const response = await fetch(`/api/inspections/${params.id}`)
+        // Fetch inspection and inspectors in parallel
+        const [inspectionResponse, inspectorsData] = await Promise.all([
+          fetch(`/api/inspections/${params.id}`),
+          fetchAllInspectors().catch(err => {
+            console.error('Error fetching inspectors:', err)
+            return []
+          })
+        ])
 
-        if (!response.ok) {
-          if (response.status === 404) {
+        // Handle inspection response
+        if (!inspectionResponse.ok) {
+          if (inspectionResponse.status === 404) {
             notFound()
             return
           }
           throw new Error('Failed to fetch inspection')
         }
 
-        const data = await response.json()
-        setInspection(data)
+        const inspectionData = await inspectionResponse.json()
+        setInspection(inspectionData)
+
+        // Set inspectors
+        setInspectors(Array.isArray(inspectorsData) ? inspectorsData : [])
 
         // Initialize form data
-        const existingChecklist = data.checklist && data.checklist.length > 0
-          ? data.checklist
+        const existingChecklist = inspectionData.checklist && inspectionData.checklist.length > 0
+          ? inspectionData.checklist
           : CHECKLIST_QUESTIONS.map(q => ({
               id: q.id,
               question: q.question,
@@ -129,10 +142,11 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
             }))
 
         setChecklist(existingChecklist)
-        setNotes(data.notes || '')
-        setViolations(data.violations?.length > 0 ? data.violations : [''])
-        setStatus(data.status || 'scheduled')
-        setInspectorName(data.inspectorName || '')
+        setNotes(inspectionData.notes || '')
+        setViolations(inspectionData.violations?.length > 0 ? inspectionData.violations : [''])
+        setStatus(inspectionData.status || 'scheduled')
+        // IMPORTANT: Pre-fill inspector name from scheduled inspection
+        setInspectorName(inspectionData.inspectorName || '')
 
       } catch (err) {
         setError(err instanceof Error ? err.message : 'Failed to fetch inspection')
@@ -142,7 +156,7 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
     }
 
     if (user) {
-      fetchInspection()
+      fetchData()
     }
   }, [params.id, user])
 
@@ -460,19 +474,30 @@ function EditInspectionContent({ params }: EditInspectionPageProps) {
                         <Label htmlFor="inspector">Inspector Name</Label>
                         <Select value={inspectorName} onValueChange={setInspectorName}>
                           <SelectTrigger className="w-full">
-                            <SelectValue placeholder="Select inspector or enter custom name" />
+                            <SelectValue placeholder="Select inspector from your list" />
                           </SelectTrigger>
                           <SelectContent>
+                            {inspectors.length > 0 ? (
+                              inspectors
+                                .filter(inspector => inspector.status === 'active')
+                                .map((inspector) => (
+                                  <SelectItem key={inspector.id} value={inspector.name}>
+                                    {inspector.name} - {inspector.specialization}
+                                  </SelectItem>
+                                ))
+                            ) : (
+                              <SelectItem value="No inspectors" disabled>
+                                No inspectors available
+                              </SelectItem>
+                            )}
                             <SelectItem value="Agronomist">Agronomist (Self)</SelectItem>
-                            <SelectItem value="John Smith">John Smith</SelectItem>
-                            <SelectItem value="Jane Doe">Jane Doe</SelectItem>
-                            <SelectItem value="Mike Wilson">Mike Wilson</SelectItem>
-                            <SelectItem value="Lisa Brown">Lisa Brown</SelectItem>
-                            <SelectItem value="Test Inspector">Test Inspector</SelectItem>
                           </SelectContent>
                         </Select>
                         <p className="text-xs text-muted-foreground">
-                          Leave blank to default to "Agronomist" or select from common inspectors
+                          {inspectors.length > 0
+                            ? "Pre-filled from scheduled inspection. Change if needed or select 'Agronomist' for self-inspection."
+                            : "No inspectors found. Add inspectors from the Inspectors page or select 'Agronomist' for self-inspection."
+                          }
                         </p>
                       </div>
                     </CardContent>

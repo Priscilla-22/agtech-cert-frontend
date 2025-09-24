@@ -17,6 +17,7 @@ import { useState, useEffect } from "react"
 import { useAuth } from "@/contexts/AuthContext"
 import { useRouter } from "next/navigation"
 import { useToast } from "@/hooks/use-toast"
+import { api } from "@/lib/api-client"
 
 export default function NewInspectionPage() {
   const { user, loading: authLoading } = useAuth()
@@ -40,26 +41,21 @@ export default function NewInspectionPage() {
     const fetchData = async () => {
       try {
         const [farmersRes, farmsRes, inspectorsRes] = await Promise.all([
-          fetch('/api/farmers'),
-          fetch('/api/farms'),
-          fetch('/api/inspectors')
+          api.farmers.getAll(),
+          api.farms.getAll(),
+          fetch('/api/inspectors')  // Keep this as is since there's no inspector API in api-client yet
         ])
 
-        if (farmersRes.ok) {
-          const farmersData = await farmersRes.json()
-          // Backend returns data in {data: [], total: ...} format
-          setFarmers(farmersData.data || farmersData)
+        if (farmersRes && farmersRes.data) {
+          setFarmers(farmersRes.data)
         }
 
-        if (farmsRes.ok) {
-          const farmsData = await farmsRes.json()
-          // Handle both direct array and {data: []} format
-          setFarms(farmsData.data || farmsData)
+        if (farmsRes && Array.isArray(farmsRes)) {
+          setFarms(farmsRes)
         }
 
         if (inspectorsRes.ok) {
           const inspectorsData = await inspectorsRes.json()
-          // Handle both direct array and {data: []} format
           setInspectors(inspectorsData.data || inspectorsData)
         }
       } catch (error) {

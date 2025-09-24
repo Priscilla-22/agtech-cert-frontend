@@ -1,4 +1,4 @@
-import { get, post, put, del, getList } from '@/lib/utils/http'
+import { get, post, put, del } from '@/lib/utils/http'
 import { Inspector, InspectorUpdateData, InspectorCreateData } from '@/lib/types/inspector'
 
 export const fetchInspectorById = async (id: string): Promise<Inspector | null> => {
@@ -15,7 +15,8 @@ export const deleteInspector = async (id: string): Promise<{ success: boolean; m
 }
 
 export const fetchAllInspectors = async (): Promise<Inspector[]> => {
-  return await getList('/inspectors')
+  const response = await get('/inspectors')
+  return response?.data || response || []
 }
 
 export const createInspector = async (data: InspectorCreateData): Promise<Inspector | null> => {

@@ -4,7 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix: inspectors" />
+    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="fix: inspector" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -101,7 +101,7 @@
       <workItem from="1758280536447" duration="7092000" />
       <workItem from="1758300180958" duration="80654000" />
       <workItem from="1758545240826" duration="44968000" />
-      <workItem from="1758704846014" duration="8498000" />
+      <workItem from="1758704846014" duration="8550000" />
     </task>
     <task id="LOCAL-00001" summary="commit">
       <option name="closed" value="true" />
@@ -431,14 +431,21 @@
       <option name="project" value="LOCAL" />
       <updated>1758719555297</updated>
     </task>
-    <option name="localTasksCounter" value="42" />
+    <task id="LOCAL-00042" summary="fix: inspector">
+      <option name="closed" value="true" />
+      <created>1758720441080</created>
+      <option name="number" value="00042" />
+      <option name="presentableId" value="LOCAL-00042" />
+      <option name="project" value="LOCAL" />
+      <updated>1758720441080</updated>
+    </task>
+    <option name="localTasksCounter" value="43" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="chore:remove uneccessary fields" />
     <MESSAGE value="chore" />
     <MESSAGE value="chore: remove hardcorded dropdown options" />
     <MESSAGE value="feat: get farms by farmer" />
@@ -463,7 +470,8 @@
     <MESSAGE value="fix:farmers details page" />
     <MESSAGE value="fix:api client import" />
     <MESSAGE value="fix: inspectors" />
-    <option name="LAST_COMMIT_MESSAGE" value="fix: inspectors" />
+    <MESSAGE value="fix: inspector" />
+    <option name="LAST_COMMIT_MESSAGE" value="fix: inspector" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
   <component name="XDebuggerManager">

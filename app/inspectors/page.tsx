@@ -13,6 +13,7 @@ import Link from "next/link"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useEffect, useState } from "react"
 import { useToast } from "@/hooks/use-toast"
+import { fetchAllInspectors, deleteInspector } from "@/lib/services/inspector-service"
 
 interface Inspector {
   id: number
@@ -35,13 +36,8 @@ function InspectorsContent() {
       setLoading(true)
       setError(null)
 
-      const response = await fetch('/api/inspectors')
-      if (!response.ok) {
-        throw new Error('Failed to fetch inspectors')
-      }
-
-      const data = await response.json()
-      setInspectors(data.data || data)
+      const data = await fetchAllInspectors()
+      setInspectors(data || [])
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to fetch inspectors')
       console.error('Inspectors fetch error:', err)
@@ -58,20 +54,17 @@ function InspectorsContent() {
     if (!confirm('Are you sure you want to delete this inspector?')) return
 
     try {
-      const response = await fetch(`/api/inspectors/${id}`, {
-        method: 'DELETE'
-      })
+      const result = await deleteInspector(id.toString())
 
-      if (!response.ok) {
-        throw new Error('Failed to delete inspector')
+      if (result.success) {
+        toast({
+          title: "Inspector Deleted",
+          description: "Inspector has been successfully removed from the system."
+        })
+        fetchInspectors()
+      } else {
+        throw new Error(result.message || 'Failed to delete inspector')
       }
-
-      toast({
-        title: "Inspector Deleted",
-        description: "Inspector has been successfully removed from the system."
-      })
-
-      fetchInspectors()
     } catch (error) {
       toast({
         variant: "destructive",

@@ -4,10 +4,7 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="remove unused feat">
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/lib/utils/http.ts" beforeDir="false" afterPath="$PROJECT_DIR$/lib/utils/http.ts" afterDir="false" />
-    </list>
+    <list default="true" id="85b48cae-3926-4346-a83b-d679e1c1f419" name="Changes" comment="logs" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
@@ -104,7 +101,7 @@
       <workItem from="1758280536447" duration="7092000" />
       <workItem from="1758300180958" duration="80654000" />
       <workItem from="1758545240826" duration="44968000" />
-      <workItem from="1758704846014" duration="5306000" />
+      <workItem from="1758704846014" duration="5873000" />
     </task>
     <task id="LOCAL-00001" summary="commit">
       <option name="closed" value="true" />
@@ -386,14 +383,29 @@
       <option name="project" value="LOCAL" />
       <updated>1758710021050</updated>
     </task>
-    <option name="localTasksCounter" value="36" />
+    <task id="LOCAL-00036" summary="logs">
+      <option name="closed" value="true" />
+      <created>1758714509706</created>
+      <option name="number" value="00036" />
+      <option name="presentableId" value="LOCAL-00036" />
+      <option name="project" value="LOCAL" />
+      <updated>1758714509706</updated>
+    </task>
+    <task id="LOCAL-00037" summary="logs">
+      <option name="closed" value="true" />
+      <created>1758714516221</created>
+      <option name="number" value="00037" />
+      <option name="presentableId" value="LOCAL-00037" />
+      <option name="project" value="LOCAL" />
+      <updated>1758714516221</updated>
+    </task>
+    <option name="localTasksCounter" value="38" />
     <servers />
   </component>
   <component name="TypeScriptGeneratedFilesManager">
     <option name="version" value="3" />
   </component>
   <component name="VcsManagerConfiguration">
-    <MESSAGE value="feat: material tailwind ui" />
     <MESSAGE value="feat: inspections status change" />
     <MESSAGE value="chore: border color on form fields" />
     <MESSAGE value="deploy" />
@@ -418,7 +430,8 @@
     <MESSAGE value="feat: post user to db" />
     <MESSAGE value="feat: automatic login" />
     <MESSAGE value="remove unused feat" />
-    <option name="LAST_COMMIT_MESSAGE" value="remove unused feat" />
+    <MESSAGE value="logs" />
+    <option name="LAST_COMMIT_MESSAGE" value="logs" />
     <option name="GROUP_MULTIFILE_MERGE_BY_DIRECTORY" value="true" />
   </component>
   <component name="XDebuggerManager">

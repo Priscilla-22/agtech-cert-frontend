@@ -4,21 +4,23 @@ import { auth } from '@/lib/firebase'
 const getAuthHeaders = async (): Promise<Record<string, string>> => {
   const headers: Record<string, string> = {}
 
-  console.log('getAuthHeaders - Current user:', auth.currentUser?.uid)
+  // Wait for Firebase auth to be ready
+  return new Promise((resolve) => {
+    const unsubscribe = auth.onAuthStateChanged(async (user) => {
+      unsubscribe() // Clean up the listener
 
-  if (auth.currentUser) {
-    try {
-      const token = await auth.currentUser.getIdToken()
-      console.log('getAuthHeaders - Token acquired, length:', token?.length)
-      headers.Authorization = `Bearer ${token}`
-    } catch (error) {
-      console.error('Error getting Firebase token:', error)
-    }
-  } else {
-    console.warn('getAuthHeaders - No current user found')
-  }
+      if (user) {
+        try {
+          const token = await user.getIdToken()
+          headers.Authorization = `Bearer ${token}`
+        } catch (error) {
+          console.error('Error getting Firebase token:', error)
+        }
+      }
 
-  return headers
+      resolve(headers)
+    })
+  })
 }
 
 export const get = async (endpoint: string, options?: RequestInit): Promise<any> => {

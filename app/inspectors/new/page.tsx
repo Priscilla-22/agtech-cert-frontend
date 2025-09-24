@@ -15,6 +15,7 @@ import { useState } from "react"
 import ProtectedRoute from "@/components/ProtectedRoute"
 import { useToast } from "@/hooks/use-toast"
 import { useRouter } from "next/navigation"
+import { createInspector } from "@/lib/services/inspector-service"
 
 function NewInspectorContent() {
   const { toast } = useToast()
@@ -72,17 +73,10 @@ function NewInspectorContent() {
     setIsSubmitting(true)
 
     try {
-      const response = await fetch('/api/inspectors', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(formData)
-      })
+      const inspector = await createInspector(formData)
 
-      if (!response.ok) {
-        const errorData = await response.json()
-        throw new Error(errorData.error || 'Failed to create inspector')
+      if (!inspector) {
+        throw new Error('Failed to create inspector')
       }
 
       toast({

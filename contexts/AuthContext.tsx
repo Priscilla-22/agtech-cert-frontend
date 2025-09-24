@@ -80,6 +80,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         title: "Success",
         description: "Account created successfully! You can now use the application.",
       });
+
+      return userCredential;
     } catch (error: any) {
       let message = "Failed to create account";
 

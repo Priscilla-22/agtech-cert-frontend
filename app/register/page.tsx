@@ -9,6 +9,7 @@ import { Leaf } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { useAuth } from "@/contexts/AuthContext"
+import { API_CONFIG } from "@/lib/config"
 
 export default function RegisterPage() {
   const [formData, setFormData] = useState({
@@ -39,13 +40,27 @@ export default function RegisterPage() {
     setIsLoading(true)
 
     try {
-      await signUp(formData.email, formData.password)
+      const userCredential = await signUp(formData.email, formData.password)
 
-      await registerUserProfile({
-        name: `${formData.firstName} ${formData.lastName}`,
-        phone: formData.phone,
-        address: formData.address
+      // Register user profile immediately with the Firebase user
+      const token = await userCredential.user.getIdToken()
+      const response = await fetch(`${API_CONFIG.BASE_URL}/auth/register`, {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${token}`,
+        },
+        body: JSON.stringify({
+          name: `${formData.firstName} ${formData.lastName}`,
+          phone: formData.phone,
+          address: formData.address
+        }),
       })
+
+      if (!response.ok) {
+        const error = await response.json()
+        throw new Error(error.error || 'Failed to register profile')
+      }
 
       router.push("/dashboard")
     } catch (error) {
